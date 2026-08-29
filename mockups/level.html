@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Hanja NOTE — Learn Korean through hanja with structured lessons, quizzes, and progress tracking.">
+<meta property="og:title" content="한자 NOTE">
+<meta property="og:type" content="website">
 <title>한자 NOTE — Levels</title>
 <style>
 :root{--bg:#121212;--ink:#f2efe6;--dim:rgba(242,239,230,.55);--faint:rgba(242,239,230,.35);--line:rgba(242,239,230,.22);--linestrong:rgba(242,239,230,.6);--serif:'Georgia','Times New Roman',serif}
@@ -124,7 +127,7 @@ nav a.on{color:#fff}
     el('metaLine').innerHTML='<b>'+arr.length+'</b> hanja shown'+(q?' for “'+q+'” ':' in this level');
     slice.forEach(function(h){
       var card=document.createElement('a');
-      card.className='card'; card.href='study.html?han='+encodeURIComponent(h.c);
+      card.className='card'; card.href='lesson.html?l='+lv+'&lesson='+(h.lesson||0);
       card.innerHTML='<div class="glyph">'+h.c+'</div>'+
         '<div class="reading">'+h.h+' <span style="color:var(--faint)">'+h.r+'</span></div>'+
         '<div class="meaning">'+(h.eng||h.h)+'</div>'+

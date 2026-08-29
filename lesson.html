@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>한자 NOTE — Lesson</title>
+<style>
+:root{--bg:#121212;--ink:#f2efe6;--dim:rgba(242,239,230,.55);--faint:rgba(242,239,230,.35);--line:rgba(242,239,230,.22);--linestrong:rgba(242,239,230,.6);--serif:'Georgia','Times New Roman',serif}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Helvetica Neue',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 32px 80px}
+.top{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:14px}
+.brand{font-size:19px;letter-spacing:.3em;color:#fff}.brand a{color:#fff;text-decoration:none}.brand .han{font-family:var(--serif);letter-spacing:.06em}
+.vol{font-size:11px;letter-spacing:.28em;color:var(--dim)}
+.hr{border:0;border-top:1px solid var(--line)}
+nav{display:flex;gap:26px;justify-content:flex-end;padding:14px 0;font-size:12px;letter-spacing:.22em;text-transform:uppercase}
+nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{color:#fff}
+.pills{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.pill{border:1px solid var(--line);color:var(--dim);padding:8px 16px;text-decoration:none;font-size:12px;letter-spacing:.16em}
+.pill.on{color:#fff;border-color:#fff}.pill:hover{color:#fff;border-color:var(--linestrong)}
+.hero{padding:50px 0 20px}
+.home-title{font-family:var(--serif);font-size:40px;line-height:1.1;margin:0;font-weight:400}
+.home-title .hangul small{display:block;font-size:14px;letter-spacing:.3em;color:var(--dim);font-family:'Helvetica Neue',Arial,sans-serif;margin-top:10px}
+.progress-bar{margin-top:16px;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.progress-bar .fill{height:100%;background:var(--linestrong);transition:width .3s}
+.progress-text{margin-top:6px;font-size:12px;letter-spacing:.16em;color:var(--dim)}
+.sec{padding:24px 0 10px;display:flex;align-items:center;gap:16px}
+.sec .tag{font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase}
+.sec .rule{flex:1;border-top:1px solid var(--linestrong)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:14px}
+.card{border:1px solid var(--line);padding:24px;text-decoration:none;color:var(--ink);display:block;transition:border-color .2s;position:relative}
+.card:hover{border-color:var(--linestrong)}
+.card .glyph{font-family:var(--serif);font-size:52px;line-height:1;color:#fff}
+.card .reading{font-size:16px;margin-top:10px}
+.card .meaning{font-size:12px;letter-spacing:.06em;color:var(--dim);margin-top:2px;text-transform:uppercase}
+.card .tip{font-size:12.5px;color:var(--dim);margin-top:12px;border-top:1px solid var(--line);padding-top:10px;line-height:1.5}
+.card .words{margin-top:10px;font-size:11px;color:var(--faint);line-height:1.8}
+.card .words b{color:var(--ink);font-weight:500}
+.card .btns{margin-top:12px;display:flex;gap:8px}
+.card .btn{border:1px solid var(--line);color:var(--dim);padding:5px 12px;font-size:10px;letter-spacing:.16em;cursor:pointer;text-transform:uppercase;background:transparent;font-family:inherit}
+.card .btn:hover{color:#fff;border-color:var(--linestrong)}
+.card .btn.done{color:var(--linestrong);border-color:var(--linestrong)}
+.card .study-link{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);text-decoration:none;margin-top:10px;display:inline-block}
+.card .study-link:hover{color:#fff}
+.nav-bottom{display:flex;justify-content:space-between;margin-top:40px;padding-top:20px;border-top:1px solid var(--line)}
+.nav-bottom a{color:var(--dim);text-decoration:none;font-size:12px;letter-spacing:.2em;text-transform:uppercase}
+.nav-bottom a:hover{color:#fff}
+.foot{margin-top:60px;border-top:1px solid var(--line);padding-top:18px;font-size:11px;letter-spacing:.2em;color:var(--faint);display:flex;justify-content:space-between}
+@media(max-width:720px){.grid{grid-template-columns:1fr}.home-title{font-size:32px}}
+</style>
+<script src="hanja-data.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <div class="brand"><a href="index.html"><span class="han">한자</span> NOTE</a></div>
+      <div class="vol" id="vol">LESSON</div>
+    </div>
+    <div class="hr"></div>
+    <nav><a href="index.html">Home</a><a href="levels.html">Levels</a><a href="lessons.html?l=0" class="on">Lessons</a><a href="quiz.html">Quiz</a></nav>
+  </header>
+
+  <section class="hero">
+    <h1 class="home-title" id="title">…<br><span class="hangul"><small id="subtitle">…</small></span></h1>
+    <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText"></div>
+  </section>
+
+  <div class="pills" id="pills"></div>
+
+  <div class="sec"><span class="tag">Characters in this lesson</span><span class="rule"></span></div>
+  <div class="grid" id="grid"></div>
+
+  <div class="nav-bottom" id="navBottom"></div>
+
+  <footer class="foot"><span>한자 NOTE</span><span id="footcount">— · <a href="https://ko-fi.com/d7d7m" target="_blank" rel="noopener">Support on Ko-fi ↗</a></span></footer>
+</div>
+<script>
+(function(){
+  var qs=new URLSearchParams(location.search);
+  var lv=parseInt(qs.get('l')); if(isNaN(lv)) lv=0;
+  var lessonIdx=parseInt(qs.get('lesson')); if(isNaN(lessonIdx)) lessonIdx=0;
+  var D=window.HANJA;
+  var meta=D.levels[lv];
+  var LEVELMETA=[['초급','Beginner','山'],['중급','Intermediate','心'],['고급','Advanced','德']];
+  var lm=LEVELMETA[lv];
+  function el(id){return document.getElementById(id)}
+  el('title').innerHTML=lm[2]+' Lesson '+(lessonIdx+1)+'<br><span class="hangul"><small>'+lm[1]+' · Level '+(lv+1)+'</small></span>';
+  el('vol').textContent='LEVEL '+(lv+1)+' · LESSON '+(lessonIdx+1);
+
+  // pills
+  var pills=el('pills');
+  D.levels.forEach(function(m,i){
+    var a=document.createElement('a');a.className='pill'+(i===lv?' on':'');
+    a.href='lesson.html?l='+lv+'&lesson='+lessonIdx;
+    a.textContent=m.ko;pills.appendChild(a);
+  });
+
+  // Get lesson characters
+  var lvChars=D.hanja.filter(function(h){return h.lv===lv;});
+  var lessonChars=lvChars.filter(function(h){return (h.lesson||0)===lessonIdx;});
+  var totalLessons=Math.max.apply(null,lvChars.map(function(h){return h.lesson||0;}))+1;
+
+  // Progress
+  var progress=JSON.parse(localStorage.getItem('hanjaprogress')||'{}');
+  var mastered=lessonChars.filter(function(h){return progress[h.c]==='mastered';}).length;
+  var pct=Math.round(mastered/lessonChars.length*100);
+  el('progressFill').style.width=pct+'%';
+  el('progressText').textContent=mastered+' / '+lessonChars.length+' mastered in this lesson ('+pct+'%)';
+  el('footcount').textContent=meta.ko+' · Lesson '+(lessonIdx+1)+' of '+totalLessons;
+
+  // Render cards
+  var grid=el('grid');
+  lessonChars.forEach(function(h){
+    var isMastered=progress[h.c]==='mastered';
+    var ws=(h.words||[]).slice(0,2);
+    var card=document.createElement('div');card.className='card';
+    var wordsHtml=ws.map(function(w){return '<b>'+w.ko+'</b> '+w.hj+' — '+w.gl;}).join('<br>');
+    card.innerHTML='<div class="glyph">'+h.c+'</div>'+
+      '<div class="reading">'+h.h+' <span style="color:var(--faint)">'+h.r+'</span></div>'+
+      '<div class="meaning">'+(h.eng||h.h)+'</div>'+
+      (h.tip?'<div class="tip">'+h.tip+'</div>':'')+
+      (wordsHtml?'<div class="words">'+wordsHtml+'</div>':'')+
+      '<div class="btns"><button class="btn '+(isMastered?'done':'')+'" data-char="'+h.c+'">'+(isMastered?'✓ Mastered':'Mark mastered')+'</button></div>'+
+      '<a class="study-link" href="study.html?han='+encodeURIComponent(h.c)+'">Deep study →</a>';
+    grid.appendChild(card);
+  });
+
+  // Mastered buttons
+  grid.addEventListener('click',function(e){
+    var btn=e.target.closest('.btn[data-char]');
+    if(!btn)return;
+    var ch=btn.getAttribute('data-char');
+    var p=JSON.parse(localStorage.getItem('hanjaprogress')||'{}');
+    if(p[ch]==='mastered'){delete p[ch];btn.classList.remove('done');btn.textContent='Mark mastered';}
+    else{p[ch]='mastered';btn.classList.add('done');btn.textContent='✓ Mastered';}
+    localStorage.setItem('hanjaprogress',JSON.stringify(p));
+    // Update progress
+    var m=lessonChars.filter(function(h){return p[h.c]==='mastered';}).length;
+    el('progressFill').style.width=Math.round(m/lessonChars.length*100)+'%';
+    el('progressText').textContent=m+' / '+lessonChars.length+' mastered in this lesson ('+Math.round(m/lessonChars.length*100)+'%)';
+  });
+
+  // Bottom nav
+  var nb=el('navBottom');
+  if(lessonIdx>0) nb.innerHTML+='<a href="lesson.html?l='+lv+'&lesson='+(lessonIdx-1)+'">← Previous lesson</a>';
+  else nb.innerHTML+='<span></span>';
+  if(lessonIdx<totalLessons-1) nb.innerHTML+='<a href="lesson.html?l='+lv+'&lesson='+(lessonIdx+1)+'">Next lesson →</a>';
+  else nb.innerHTML+='<span></span>';
+})();
+</script>
+</body>
+</html>

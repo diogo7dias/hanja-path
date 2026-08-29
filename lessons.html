@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>한자 NOTE — Lessons</title>
+<meta name="description" content="Study hanja in structured lessons grouped by pictographic complexity. Beginner, intermediate, and advanced levels.">
+<meta property="og:title" content="한자 NOTE — Lessons">
+<meta property="og:description" content="Structured hanja lessons for Korean learners.">
+<meta property="og:type" content="website">
+<style>
+:root{--bg:#121212;--ink:#f2efe6;--dim:rgba(242,239,230,.55);--faint:rgba(242,239,230,.35);--line:rgba(242,239,230,.22);--linestrong:rgba(242,239,230,.6);--serif:'Georgia','Times New Roman',serif}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Helvetica Neue',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 32px 80px}
+.top{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:14px}
+.brand{font-size:19px;letter-spacing:.3em;color:#fff}.brand a{color:#fff;text-decoration:none}.brand .han{font-family:var(--serif);letter-spacing:.06em}
+.vol{font-size:11px;letter-spacing:.28em;color:var(--dim)}
+.hr{border:0;border-top:1px solid var(--line)}
+nav{display:flex;gap:26px;justify-content:flex-end;padding:14px 0;font-size:12px;letter-spacing:.22em;text-transform:uppercase}
+nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{color:#fff}
+.pills{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.pill{border:1px solid var(--line);color:var(--dim);padding:8px 16px;text-decoration:none;font-size:12px;letter-spacing:.16em}
+.pill.on{color:#fff;border-color:#fff}.pill:hover{color:#fff;border-color:var(--linestrong)}
+.hero{padding:50px 0 30px}
+.home-title{font-family:var(--serif);font-size:46px;line-height:1.05;margin:0;letter-spacing:.02em;font-weight:400}
+.home-title .hangul small{display:block;font-size:15px;letter-spacing:.42em;color:var(--dim);font-family:'Helvetica Neue',Arial,sans-serif;font-weight:400;margin-top:14px}
+.progress-bar{margin-top:20px;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.progress-bar .fill{height:100%;background:var(--linestrong);transition:width .3s}
+.progress-text{margin-top:8px;font-size:12px;letter-spacing:.16em;color:var(--dim)}
+.sec{padding:30px 0 10px;display:flex;align-items:center;gap:16px}
+.sec .tag{font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase}
+.sec .rule{flex:1;border-top:1px solid var(--linestrong)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:14px}
+.lesson{border:1px solid var(--line);padding:20px;text-decoration:none;color:var(--ink);display:block;transition:border-color .2s;position:relative}
+.lesson:hover{border-color:var(--linestrong)}
+.lesson .lnum{font-size:11px;letter-spacing:.3em;color:var(--faint)}
+.lesson .chars{font-family:var(--serif);font-size:28px;color:#fff;margin-top:8px;letter-spacing:.08em;line-height:1.2}
+.lesson .count{font-size:11px;color:var(--dim);margin-top:8px}
+.lesson .prog{margin-top:10px;height:3px;background:var(--line);border-radius:2px;overflow:hidden}
+.lesson .prog .fill{height:100%;background:var(--linestrong)}
+.lesson .check{position:absolute;top:14px;right:14px;font-size:16px;color:var(--linestrong)}
+.foot{margin-top:60px;border-top:1px solid var(--line);padding-top:18px;font-size:11px;letter-spacing:.2em;color:var(--faint);display:flex;justify-content:space-between}
+@media(max-width:720px){.home-title{font-size:36px}.grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
+</style>
+<script src="hanja-data.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <div class="brand"><a href="index.html"><span class="han">한자</span> NOTE</a></div>
+      <div class="vol" id="vol">LESSONS</div>
+    </div>
+    <div class="hr"></div>
+    <nav><a href="index.html">Home</a><a href="levels.html">Levels</a><a href="lessons.html?l=0" class="on">Lessons</a><a href="quiz.html">Quiz</a></nav>
+  </header>
+
+  <section class="hero">
+    <h1 class="home-title" id="title">…<br><span class="hangul"><small id="subtitle">…</small></span></h1>
+    <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText"></div>
+  </section>
+
+  <div class="pills" id="pills"></div>
+
+  <div class="sec"><span class="tag">Choose a lesson</span><span class="rule"></span></div>
+  <div class="grid" id="grid"></div>
+
+  <footer class="foot"><span>한자 NOTE</span><span id="footcount">— · <a href="https://ko-fi.com/d7d7m" target="_blank" rel="noopener">Support on Ko-fi ↗</a></span></footer>
+</div>
+<script>
+(function(){
+  var qs=new URLSearchParams(location.search);
+  var lv=parseInt(qs.get('l')); if(isNaN(lv)) lv=0;
+  var D=window.HANJA;
+  var meta=D.levels[lv];
+  var LEVELMETA=[['초급','Beginner','山','The world in pictures'],['중급','Intermediate','心','Words & ideas'],['고급','Advanced','德','Virtue & abstraction']];
+  var lm=LEVELMETA[lv];
+  function el(id){return document.getElementById(id)}
+  el('title').innerHTML=lm[2]+' '+lm[0]+' Lessons<br><span class="hangul"><small>'+lm[1]+' · '+lm[3]+'</small></span>';
+  el('vol').textContent='LEVEL '+(lv+1)+' · LESSONS';
+  el('footcount').textContent=meta.ko+' · '+meta.n+' hanja';
+
+  // pills
+  var pills=el('pills');
+  D.levels.forEach(function(m,i){
+    var a=document.createElement('a');
+    a.className='pill'+(i===lv?' on':'');
+    a.href='lessons.html?l='+i;
+    a.textContent=m.ko;
+    pills.appendChild(a);
+  });
+
+  // Group characters by lesson
+  var lvChars=D.hanja.filter(function(h){return h.lv===lv;});
+  var lessons={};
+  lvChars.forEach(function(h){
+    var li=h.lesson||0;
+    if(!lessons[li]) lessons[li]=[];
+    lessons[li].push(h);
+  });
+  var lessonKeys=Object.keys(lessons).map(Number).sort(function(a,b){return a-b;});
+
+  // Progress from localStorage
+  var progress=JSON.parse(localStorage.getItem('hanjaprogress')||'{}');
+  var mastered=0, total=lvChars.length;
+  lvChars.forEach(function(h){if(progress[h.c]==='mastered') mastered++;});
+  var pct=Math.round(mastered/total*100);
+  el('progressFill').style.width=pct+'%';
+  el('progressText').textContent=mastered+' / '+total+' characters mastered ('+pct+'%)';
+
+  // Render lessons
+  var grid=el('grid');
+  lessonKeys.forEach(function(li){
+    var chars=lessons[li];
+    var done=chars.every(function(h){return progress[h.c]==='mastered';});
+    var doneCount=chars.filter(function(h){return progress[h.c]==='mastered';}).length;
+    var a=document.createElement('a');
+    a.className='lesson';
+    a.href='lesson.html?l='+lv+'&lesson='+li;
+    var charStr=chars.slice(0,5).map(function(h){return h.c;}).join(' ');
+    a.innerHTML='<div class="lnum">LESSON '+(li+1)+'</div>'+
+      '<div class="chars">'+charStr+'</div>'+
+      '<div class="count">'+chars.length+' characters</div>'+
+      '<div class="prog"><div class="fill" style="width:'+(doneCount/chars.length*100)+'%"></div></div>'+
+      (done?'<div class="check">✓</div>':'');
+    grid.appendChild(a);
+  });
+})();
+</script>
+</body>
+</html>

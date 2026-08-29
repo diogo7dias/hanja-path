@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>한자 NOTE — Quiz</title>
+<style>
+:root{--bg:#121212;--ink:#f2efe6;--dim:rgba(242,239,230,.55);--faint:rgba(242,239,230,.35);--line:rgba(242,239,230,.22);--linestrong:rgba(242,239,230,.6);--serif:'Georgia','Times New Roman',serif}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Helvetica Neue',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:700px;margin:0 auto;padding:28px 32px 80px}
+.top{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:14px}
+.brand{font-size:19px;letter-spacing:.3em;color:#fff}.brand a{color:#fff;text-decoration:none}.brand .han{font-family:var(--serif);letter-spacing:.06em}
+.vol{font-size:11px;letter-spacing:.28em;color:var(--dim)}
+.hr{border:0;border-top:1px solid var(--line)}
+nav{display:flex;gap:26px;justify-content:flex-end;padding:14px 0;font-size:12px;letter-spacing:.22em;text-transform:uppercase}
+nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{color:#fff}
+.pills{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.pill{border:1px solid var(--line);color:var(--dim);padding:8px 16px;text-decoration:none;font-size:12px;letter-spacing:.16em}
+.pill.on{color:#fff;border-color:#fff}.pill:hover{color:#fff;border-color:var(--linestrong)}
+.hero{padding:50px 0 30px;text-align:center}
+.hero .glyph{font-family:var(--serif);font-size:180px;line-height:1;color:#fff}
+.hero .reading{font-size:20px;margin-top:16px;color:var(--dim)}
+.hero .meaning{font-size:14px;margin-top:6px;color:var(--faint);letter-spacing:.1em}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:30px}
+.choice{border:1px solid var(--line);padding:16px;text-align:center;cursor:pointer;transition:all .2s;font-size:16px}
+.choice:hover{border-color:var(--linestrong);color:#fff}
+.choice.correct{border-color:#4caf50;color:#4caf50;background:rgba(76,175,80,.08)}
+.choice.wrong{border-color:#f44336;color:#f44336;background:rgba(244,67,54,.08)}
+.choice.reveal{border-color:#4caf50;color:#4caf50}
+.score{margin-top:30px;text-align:center;font-size:14px;color:var(--dim);letter-spacing:.1em}
+.score b{color:#fff}
+.btn-row{margin-top:24px;text-align:center}
+.btn{border:1px solid var(--linestrong);color:#fff;padding:10px 24px;font-size:12px;letter-spacing:.2em;cursor:pointer;text-transform:uppercase;background:transparent;font-family:inherit}
+.btn:hover{background:var(--linestrong);color:var(--bg)}
+.mode-select{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.mode{border:1px solid var(--line);padding:12px 20px;cursor:pointer;text-align:center;transition:all .2s}
+.mode:hover{border-color:var(--linestrong)}.mode.on{border-color:#fff;color:#fff}
+.mode .label{font-size:13px;letter-spacing:.1em}.mode .desc{font-size:11px;color:var(--dim);margin-top:4px}
+.done-msg{text-align:center;padding:60px 0}
+.done-msg h2{font-family:var(--serif);font-size:36px;margin:0}
+.done-msg .pct{font-size:48px;color:#fff;margin-top:16px}
+.done-msg .sub{color:var(--dim);margin-top:8px;font-size:14px}
+.foot{margin-top:60px;border-top:1px solid var(--line);padding-top:18px;font-size:11px;letter-spacing:.2em;color:var(--faint);display:flex;justify-content:space-between}
+@media(max-width:720px){.hero .glyph{font-size:120px}.choices{grid-template-columns:1fr}}
+</style>
+<script src="hanja-data.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <div class="brand"><a href="index.html"><span class="han">한자</span> NOTE</a></div>
+      <div class="vol">QUIZ</div>
+    </div>
+    <div class="hr"></div>
+    <nav><a href="index.html">Home</a><a href="levels.html">Levels</a><a href="lessons.html?l=0">Lessons</a><a href="quiz.html" class="on">Quiz</a></nav>
+  </header>
+
+  <div class="pills" id="pills"></div>
+
+  <section class="hero" id="heroSection">
+    <div class="glyph" id="quizGlyph">?</div>
+    <div class="reading" id="quizReading"></div>
+    <div class="meaning" id="quizMeaning"></div>
+  </section>
+
+  <div class="mode-select" id="modeSelect">
+    <div class="mode on" data-mode="reading">
+      <div class="label">_glyph → Reading</div>
+      <div class="desc">See the hanja, pick the Korean reading</div>
+    </div>
+    <div class="mode" data-mode="meaning">
+      <div class="label">_glyph → Meaning</div>
+      <div class="desc">See the hanja, pick the English meaning</div>
+    </div>
+    <div class="mode" data-mode="reverse">
+      <div class="label">_Reading → Glyph</div>
+      <div class="desc">See the reading, pick the hanja</div>
+    </div>
+  </div>
+
+  <div class="choices" id="choices"></div>
+  <div class="score" id="score"></div>
+  <div class="btn-row" id="btnRow"></div>
+
+  <div class="done-msg" id="doneMsg" style="display:none">
+    <h2>Quiz Complete!</h2>
+    <div class="pct" id="finalPct"></div>
+    <div class="sub" id="finalSub"></div>
+    <div class="btn-row"><button class="btn" onclick="location.reload()">Try Again</button></div>
+  </div>
+
+  <footer class="foot"><span>한자 NOTE</span><span>QUIZ · test your knowledge · <a href="https://ko-fi.com/d7d7m" target="_blank" rel="noopener">Support on Ko-fi ↗</a></span></footer>
+</div>
+<script>
+(function(){
+  var D=window.HANJA;
+  var qs=new URLSearchParams(location.search);
+  var lv=parseInt(qs.get('l')); if(isNaN(lv)) lv=-1; // -1 = all levels
+  var numQ=parseInt(qs.get('n')); if(isNaN(numQ)) numQ=20;
+
+  function el(id){return document.getElementById(id)}
+
+  // Pills
+  var pills=el('pills');
+  [{l:-1,k:'All Levels'}].concat(D.levels).forEach(function(m){
+    var a=document.createElement('a');a.className='pill'+(m.l===lv?' on':'');
+    a.href='quiz.html?l='+m.l+'&n='+numQ;
+    a.textContent=m.ko||'All Levels';pills.appendChild(a);
+  });
+
+  // Mode selection
+  var mode='reading';
+  el('modeSelect').addEventListener('click',function(e){
+    var md=e.target.closest('.mode');if(!md)return;
+    el('modeSelect').querySelectorAll('.mode').forEach(function(m){m.classList.remove('on');});
+    md.classList.add('on');mode=md.getAttribute('data-mode');
+  });
+
+  // Build question pool
+  var pool=D.hanja.filter(function(h){return lv<0||h.lv===lv;});
+  // Shuffle
+  for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+  var questions=pool.slice(0,numQ);
+  var qIdx=0, correct=0, answered=false;
+
+  function shuffle(arr){
+    for(var i=arr.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=arr[i];arr[i]=arr[j];arr[j]=t;}
+    return arr;
+  }
+
+  function render(){
+    if(qIdx>=questions.length){
+      el('heroSection').style.display='none';
+      el('modeSelect').style.display='none';
+      el('choices').innerHTML='';
+      el('doneMsg').style.display='';
+      el('finalPct').textContent=Math.round(correct/questions.length*100)+'%';
+      el('finalSub').textContent=correct+' correct out of '+questions.length+' questions';
+      el('score').innerHTML='';el('btnRow').innerHTML='';return;
+    }
+    var q=questions[qIdx];
+    answered=false;
+    // Get 4 choices including correct
+    var others=pool.filter(function(h){return h.c!==q.c;});
+    shuffle(others);
+    var opts=[q].concat(others.slice(0,3));
+    shuffle(opts);
+
+    if(mode==='reading'||mode==='meaning'){
+      el('quizGlyph').textContent=q.c;
+      el('quizReading').textContent=q.h+' '+q.r;
+      el('quizMeaning').textContent='';
+      var choices=el('choices');choices.innerHTML='';
+      opts.forEach(function(o){
+        var d=document.createElement('div');d.className='choice';
+        d.textContent=mode==='reading'?(o.h+' '+o.r):(o.eng||o.h);
+        d.setAttribute('data-correct',o.c===q.c?'1':'0');
+        d.setAttribute('data-c',o.c);
+        choices.appendChild(d);
+      });
+    } else {
+      el('quizGlyph').textContent='';
+      el('quizReading').textContent=q.h+' '+q.r;
+      el('quizMeaning').textContent=q.eng||q.h;
+      var choices=el('choices');choices.innerHTML='';
+      opts.forEach(function(o){
+        var d=document.createElement('div');d.className='choice';
+        d.style.fontFamily='var(--serif)';d.style.fontSize='36px';
+        d.textContent=o.c;
+        d.setAttribute('data-correct',o.c===q.c?'1':'0');
+        d.setAttribute('data-c',o.c);
+        choices.appendChild(d);
+      });
+    }
+    el('score').innerHTML='<b>'+(qIdx+1)+' / '+questions.length+'</b> · <b>'+correct+'</b> correct';
+    el('btnRow').innerHTML='';
+  }
+
+  el('choices').addEventListener('click',function(e){
+    var d=e.target.closest('.choice');if(!d||answered)return;
+    answered=true;
+    var isCorrect=d.getAttribute('data-correct')==='1';
+    if(isCorrect)correct++;
+    // Highlight
+    el('choices').querySelectorAll('.choice').forEach(function(c){
+      if(c.getAttribute('data-correct')==='1')c.classList.add('correct');
+      else if(c===d&&!isCorrect)c.classList.add('wrong');
+    });
+    el('score').innerHTML='<b>'+(qIdx+1)+' / '+questions.length+'</b> · <b>'+correct+'</b> correct';
+    setTimeout(function(){qIdx++;render();},1200);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

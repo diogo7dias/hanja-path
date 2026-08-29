@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Hanja NOTE — Learn Korean through hanja with structured lessons, quizzes, and progress tracking.">
+<meta property="og:title" content="한자 NOTE">
+<meta property="og:type" content="website">
 <title>한자 NOTE — Study</title>
 <style>
 :root{--bg:#121212;--ink:#f2efe6;--dim:rgba(242,239,230,.55);--faint:rgba(242,239,230,.35);--line:rgba(242,239,230,.22);--linestrong:rgba(242,239,230,.6);--serif:'Georgia','Times New Roman',serif}
@@ -79,6 +82,7 @@ a{color:var(--dim)}
       <div class="en" id="meaning">EXCHANGE, MIX</div>
       <div class="tip"><span id="tipko"></span><span class="gloss" id="tipgloss"></span></div>
       <div class="meta" id="meta"><a href="level.html?l=0">Back to level →</a></div>
+      <div class="btns" style="margin-top:14px"><button class="btn" id="masterBtn" style="border:1px solid var(--line);color:var(--dim);padding:6px 14px;font-size:10px;letter-spacing:.16em;cursor:pointer;text-transform:uppercase;background:transparent;font-family:inherit">Mark mastered</button></div>
     </div>
   </div>
 
@@ -177,6 +181,17 @@ a{color:var(--dim)}
   }
 
   set('foottag','STUDY · '+h.c+' · '+h.h+' '+h.r+' · '+(h.eng||h.h));
+
+  // Progress tracking
+  var btn=document.getElementById('masterBtn');
+  var prog=JSON.parse(localStorage.getItem('hanjaprogress')||'{}');
+  if(prog[h.c]==='mastered'){btn.textContent='✓ Mastered';btn.style.color='var(--linestrong)';btn.style.borderColor='var(--linestrong)';}
+  btn.addEventListener('click',function(){
+    var p=JSON.parse(localStorage.getItem('hanjaprogress')||'{}');
+    if(p[h.c]==='mastered'){delete p[h.c];btn.textContent='Mark mastered';btn.style.color='var(--dim)';btn.style.borderColor='var(--line)';}
+    else{p[h.c]='mastered';btn.textContent='✓ Mastered';btn.style.color='var(--linestrong)';btn.style.borderColor='var(--linestrong)';}
+    localStorage.setItem('hanjaprogress',JSON.stringify(p));
+  });
 })();
 </script>
 </body>
