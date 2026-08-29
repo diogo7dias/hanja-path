@@ -48,6 +48,16 @@ nav a.on{color:#fff}
 .col .parts{margin-top:8px;font-size:11px;letter-spacing:.04em;color:var(--dim);line-height:1.8}
 .col .gloss{margin-top:12px;font-size:12px;font-style:italic;color:var(--faint)}
 .limited-note{flex:1;padding:18px 22px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);line-height:1.8}.limited-note span{font-style:italic;color:var(--faint)}
+.radical-section{margin-top:20px;border-top:1px solid var(--linestrong);padding-top:16px}
+.radical-section .label{font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase;margin-bottom:8px}
+.radical-section .rad-char{font-family:var(--serif);font-size:32px;color:#fff}
+.radical-section .rad-info{font-size:13px;color:var(--dim);margin-top:4px}
+.related-section{margin-top:16px;border-top:1px solid var(--line);padding-top:12px}
+.related-section .label{font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase;margin-bottom:8px}
+.related-chars{display:flex;flex-wrap:wrap;gap:8px}
+.related-chars a{border:1px solid var(--line);padding:6px 12px;text-decoration:none;color:var(--ink);font-family:var(--serif);font-size:18px;transition:border-color .2s}
+.related-chars a:hover{border-color:var(--linestrong);color:#fff}
+.related-chars a .rr{font-family:'Helvetica Neue',Arial,sans-serif;font-size:11px;color:var(--dim);margin-left:6px}
 .sentence{margin-top:8px;border-top:1px solid var(--linestrong);padding-top:26px;padding-bottom:30px}
 .sentence .lead{font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase}
 .sentence .kotext{font-size:21px;margin-top:12px;color:#fff}
@@ -81,6 +91,15 @@ a{color:var(--dim)}
       <div class="ko" id="reading">사귈 교</div>
       <div class="en" id="meaning">EXCHANGE, MIX</div>
       <div class="tip"><span id="tipko"></span><span class="gloss" id="tipgloss"></span></div>
+      <div class="radical-section" id="radSection" style="display:none">
+        <div class="label">Radical</div>
+        <div class="rad-char" id="radChar"></div>
+        <div class="rad-info" id="radInfo"></div>
+      </div>
+      <div class="related-section" id="relatedSection" style="display:none">
+        <div class="label">Same radical family</div>
+        <div class="related-chars" id="relatedChars"></div>
+      </div>
       <div class="meta" id="meta"><a href="level.html?l=0">Back to level →</a></div>
       <div class="btns" style="margin-top:14px"><button class="btn" id="masterBtn" style="border:1px solid var(--line);color:var(--dim);padding:6px 14px;font-size:10px;letter-spacing:.16em;cursor:pointer;text-transform:uppercase;background:transparent;font-family:inherit">Mark mastered</button></div>
     </div>
@@ -181,6 +200,27 @@ a{color:var(--dim)}
   }
 
   set('foottag','STUDY · '+h.c+' · '+h.h+' '+h.r+' · '+(h.eng||h.h));
+
+  // Radical and related characters
+  if(h.rad){
+    document.getElementById('radSection').style.display='';
+    document.getElementById('radChar').textContent=h.radName;
+    document.getElementById('radInfo').textContent='Radical #'+h.rad+' · '+h.h+' uses this component';
+  }
+  if(h.related && h.related.length){
+    document.getElementById('relatedSection').style.display='';
+    var rc=document.getElementById('relatedChars');
+    rc.innerHTML='';
+    h.related.forEach(function(c){
+      var found=D.hanja.filter(function(x){return x.c===c;})[0];
+      if(found){
+        var a=document.createElement('a');
+        a.href='study.html?han='+encodeURIComponent(c);
+        a.innerHTML=c+'<span class="rr">'+found.r+'</span>';
+        rc.appendChild(a);
+      }
+    });
+  }
 
   // Progress tracking
   var btn=document.getElementById('masterBtn');
