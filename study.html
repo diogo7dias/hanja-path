@@ -27,6 +27,8 @@ nav a.on{color:#fff}
 .pill{border:1px solid var(--line);color:var(--dim);padding:8px 16px;text-decoration:none;font-size:12px;letter-spacing:.16em}
 .pill.on{color:#fff;border-color:#fff}
 .pill:hover{color:#fff;border-color:var(--linestrong)}
+.spk{border:1px solid var(--line);background:transparent;color:var(--dim);cursor:pointer;font-size:11px;padding:2px 8px;border-radius:2px;font-family:inherit;vertical-align:middle;line-height:1.5;margin-left:8px}
+.spk:hover{color:#fff;border-color:var(--linestrong)}
 .bigflex{display:flex;gap:54px;padding:60px 0 40px;align-items:center}
 .bigflex .glyphbig{font-family:var(--serif);font-size:330px;line-height:.9;color:#fff;flex:none}
 .study-side .ko{font-family:var(--serif);font-size:52px;margin:0}
@@ -74,13 +76,14 @@ a{color:var(--dim)}
 }
 </style>
 <script src="hanja-data.js"></script>
+<script src="audio.js"></script>
 </head>
 <body>
 <div class="wrap">
   <header>
     <div class="top"><div class="brand"><a href="index.html"><span class="han">한자</span> NOTE</a></div><div class="vol" id="vol">HANJA NOTE</div></div>
     <div class="hr"></div>
-    <nav><a href="index.html">Home</a><a href="levels.html" id="navlevels">Levels</a><a href="study.html?han=山" class="on">Study</a></nav>
+    <nav><a href="index.html">Home</a><a href="levels.html" id="navlevels">Levels</a><a href="reading.html?r=가">Readings</a><a href="study.html?han=山" class="on">Study</a></nav>
   </header>
 
   <div class="pills" id="pills"></div>
@@ -89,6 +92,7 @@ a{color:var(--dim)}
     <div class="glyphbig" id="glyph">交</div>
     <div class="study-side">
       <div class="ko" id="reading">사귈 교</div>
+      <button class="spk" id="spkReading" type="button" style="margin-left:0;margin-top:6px">🔊 Hear the reading</button>
       <div class="en" id="meaning">EXCHANGE, MIX</div>
       <div class="tip"><span id="tipko"></span><span class="gloss" id="tipgloss"></span></div>
       <div class="radical-section" id="radSection" style="display:none">
@@ -99,6 +103,10 @@ a{color:var(--dim)}
       <div class="related-section" id="relatedSection" style="display:none">
         <div class="label">Same radical family</div>
         <div class="related-chars" id="relatedChars"></div>
+      </div>
+      <div class="related-section" id="readingSection" style="display:none">
+        <div class="label">Same reading</div>
+        <div class="related-chars" id="readingChars"></div>
       </div>
       <div class="meta" id="meta"><a href="level.html?l=0">Back to level →</a></div>
       <div class="btns" style="margin-top:14px"><button class="btn" id="masterBtn" style="border:1px solid var(--line);color:var(--dim);padding:6px 14px;font-size:10px;letter-spacing:.16em;cursor:pointer;text-transform:uppercase;background:transparent;font-family:inherit">Mark mastered</button></div>
@@ -111,6 +119,7 @@ a{color:var(--dim)}
   <div class="sentence" id="sentence">
     <div class="lead">Use it — your Korean journey</div>
     <div class="kotext" id="kotext"></div>
+    <button class="spk" id="spkSent" type="button" style="margin-left:0;margin-top:10px">🔊 Hear the sentence</button>
     <div class="tr" id="senttr"></div>
   </div>
 
@@ -165,7 +174,7 @@ a{color:var(--dim)}
     var wd=ws[i];
     if(wd){
       col.innerHTML='<div class="num">'+n+'</div>'+
-        '<div class="wordhead"><span class="korean">'+esc(wd.ko)+'</span> <span class="hanja">'+esc(wd.hj)+'</span></div>'+
+        '<div class="wordhead"><span class="korean">'+esc(wd.ko)+'</span> <span class="hanja">'+esc(wd.hj)+'</span> <button class="spk" type="button" onclick="window.speakKo&&window.speakKo(\''+esc(wd.ko).replace(/'/g,"\\'")+'\')">🔊</button></div>'+
         '<div class="parts">'+esc(wd.b||'')+'</div>'+
         '<div class="gloss">'+esc(wd.gl||'')+'</div>';
     }
@@ -200,6 +209,28 @@ a{color:var(--dim)}
   }
 
   set('foottag','STUDY · '+h.c+' · '+h.h+' '+h.r+' · '+(h.eng||h.h));
+
+  // Audio
+  if(window.speakKo){
+    document.getElementById('spkReading').onclick=function(){window.speakKo(h.h+' '+h.r);};
+    var sentBtn=document.getElementById('spkSent');
+    sentBtn.style.display=sent?'':'none';
+    sentBtn.onclick=function(){ if(sent) window.speakKo(sent.ko); };
+  } else {
+    var spk=document.querySelectorAll('.spk');
+    for(var si=0;si<spk.length;si++) spk[si].style.display='none';
+  }
+
+  // Same-reading family
+  var same=D.hanja.filter(function(x){return x.r===h.r;});
+  if(same.length>1){
+    document.getElementById('readingSection').style.display='';
+    var rch=document.getElementById('readingChars');
+    var a=document.createElement('a');
+    a.href='reading.html?r='+encodeURIComponent(h.r);
+    a.innerHTML='<span style="font-family:Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:.1em">'+h.r+' · '+same.length+' characters</span>';
+    rch.appendChild(a);
+  }
 
   // Radical and related characters
   if(h.rad){

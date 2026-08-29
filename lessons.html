@@ -28,6 +28,9 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 .progress-bar{margin-top:20px;height:4px;background:var(--line);border-radius:2px;overflow:hidden}
 .progress-bar .fill{height:100%;background:var(--linestrong);transition:width .3s}
 .progress-text{margin-top:8px;font-size:12px;letter-spacing:.16em;color:var(--dim)}
+.due-line{margin-top:10px;font-size:12px;letter-spacing:.14em}
+.due-line a{color:#f2a65a;text-decoration:none;border:1px solid rgba(242,166,90,.4);padding:6px 14px;display:inline-block}
+.due-line a:hover{color:#fff;border-color:#f2a65a}
 .sec{padding:30px 0 10px;display:flex;align-items:center;gap:16px}
 .sec .tag{font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase}
 .sec .rule{flex:1;border-top:1px solid var(--linestrong)}
@@ -53,13 +56,14 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
       <div class="vol" id="vol">LESSONS</div>
     </div>
     <div class="hr"></div>
-    <nav><a href="index.html">Home</a><a href="levels.html">Levels</a><a href="lessons.html?l=0" class="on">Lessons</a><a href="quiz.html">Quiz</a></nav>
+    <nav><a href="index.html">Home</a><a href="levels.html">Levels</a><a href="lessons.html?l=0" class="on">Lessons</a><a href="reading.html?r=가">Readings</a><a href="quiz.html">Quiz</a></nav>
   </header>
 
   <section class="hero">
     <h1 class="home-title" id="title">…<br><span class="hangul"><small id="subtitle">…</small></span></h1>
     <div class="progress-bar"><div class="fill" id="progressFill"></div></div>
     <div class="progress-text" id="progressText"></div>
+    <div class="due-line" id="dueLine" style="display:none"></div>
   </section>
 
   <div class="pills" id="pills"></div>
@@ -109,6 +113,15 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
   var pct=Math.round(mastered/total*100);
   el('progressFill').style.width=pct+'%';
   el('progressText').textContent=mastered+' / '+total+' characters mastered ('+pct+'%)';
+
+  // Due reviews badge (spaced repetition, all levels)
+  var sched=JSON.parse(localStorage.getItem('hanjasrs')||'{}');
+  var t=Math.floor(Date.now()/86400000), dueN=0;
+  D.hanja.forEach(function(h){ var r=sched[h.c]; if(!r||r.d<=t) dueN++; });
+  if(dueN>0){
+    el('dueLine').style.display='';
+    el('dueLine').innerHTML='<a href="quiz.html?srs=1">'+dueN+' review'+(dueN===1?'':'s')+' due today →</a>';
+  }
 
   // Render lessons
   var grid=el('grid');

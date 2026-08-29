@@ -115,6 +115,11 @@ nav a.on{color:#fff}
 /* footer */
 .foot{margin-top:60px;border-top:1px solid var(--line);padding-top:18px;font-size:11px;letter-spacing:.2em;color:var(--faint);display:flex;justify-content:space-between}
 
+/* due reviews CTA */
+.due-cta{margin-top:36px;text-align:center}
+.due-cta a{color:#f2a65a;text-decoration:none;border:1px solid rgba(242,166,90,.4);padding:10px 22px;font-size:12px;letter-spacing:.2em;text-transform:uppercase;display:inline-block}
+.due-cta a:hover{color:#fff;border-color:#f2a65a}
+
 /* pill level chips */
 .pills{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
 .pill{border:1px solid var(--line);color:var(--dim);padding:8px 16px;text-decoration:none;font-size:12px;letter-spacing:.16em}
@@ -144,8 +149,7 @@ nav a.on{color:#fff}
     <div class="hr"></div>
     <nav>
       <a href="index.html" class="on">Home</a>
-      <a href="levels.html">Levels</a><a href="lessons.html?l=0">Lessons</a><a href="quiz.html">Quiz</a>
-      <a href="study.html?han=山">Study</a>
+      <a href="levels.html">Levels</a><a href="lessons.html?l=0">Lessons</a><a href="reading.html?r=가">Readings</a><a href="quiz.html">Quiz</a>
     </nav>
   </header>
 
@@ -185,7 +189,25 @@ nav a.on{color:#fff}
     </a>
   </div>
 
+  <div class="due-cta" id="dueCta" style="display:none">
+    <a href="quiz.html?srs=1" id="dueCtaLink">Reviews due today →</a>
+  </div>
+
   <footer class="foot"><span>한자 NOTE</span><span>A minimal companion for your Korean journey · 2026 · <a href="https://ko-fi.com/d7d7m" target="_blank" rel="noopener">Support on Ko-fi ↗</a></span></footer>
+</div>
+<script src="hanja-data.js"></script>
+<script>
+(function(){
+  var D=window.HANJA;
+  var sched=JSON.parse(localStorage.getItem('hanjasrs')||'{}');
+  var t=Math.floor(Date.now()/86400000), dueN=0;
+  D.hanja.forEach(function(h){ var r=sched[h.c]; if(!r||r.d<=t) dueN++; });
+  if(dueN>0){
+    document.getElementById('dueCta').style.display='';
+    document.getElementById('dueCtaLink').textContent=dueN+' review'+(dueN===1?'':'s')+' due today →';
+  }
+})();
+</script>
 </div>
 </body>
 </html>

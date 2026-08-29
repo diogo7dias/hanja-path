@@ -18,33 +18,44 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 .pills{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
 .pill{border:1px solid var(--line);color:var(--dim);padding:8px 16px;text-decoration:none;font-size:12px;letter-spacing:.16em}
 .pill.on{color:#fff;border-color:#fff}.pill:hover{color:#fff;border-color:var(--linestrong)}
-.hero{padding:50px 0 30px;text-align:center}
+.streak{margin-top:14px;font-size:12px;letter-spacing:.14em;color:#f2a65a}
+.hero{padding:44px 0 20px;text-align:center}
 .hero .glyph{font-family:var(--serif);font-size:180px;line-height:1;color:#fff}
+.hero .glyph.word-glyph{font-family:'Helvetica Neue',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:56px;line-height:1.4;color:#fff}
 .hero .reading{font-size:20px;margin-top:16px;color:var(--dim)}
 .hero .meaning{font-size:14px;margin-top:6px;color:var(--faint);letter-spacing:.1em}
-.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:30px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:26px}
 .choice{border:1px solid var(--line);padding:16px;text-align:center;cursor:pointer;transition:all .2s;font-size:16px}
 .choice:hover{border-color:var(--linestrong);color:#fff}
 .choice.correct{border-color:#4caf50;color:#4caf50;background:rgba(76,175,80,.08)}
 .choice.wrong{border-color:#f44336;color:#f44336;background:rgba(244,67,54,.08)}
 .choice.reveal{border-color:#4caf50;color:#4caf50}
-.score{margin-top:30px;text-align:center;font-size:14px;color:var(--dim);letter-spacing:.1em}
+.choice .sub{display:block;font-size:11px;color:var(--faint);margin-top:4px;letter-spacing:.08em}
+.feedback{margin-top:18px;text-align:center;font-size:13px;color:var(--dim)}
+.feedback .fb-char{font-family:var(--serif);font-size:22px;color:#fff}
+.feedback .fb-study{display:inline-block;margin-left:10px;color:var(--dim);font-size:11px;letter-spacing:.2em;text-transform:uppercase;text-decoration:none;border:1px solid var(--line);padding:4px 10px}
+.feedback .fb-study:hover{color:#fff;border-color:var(--linestrong)}
+.score{margin-top:26px;text-align:center;font-size:14px;color:var(--dim);letter-spacing:.1em}
 .score b{color:#fff}
 .btn-row{margin-top:24px;text-align:center}
 .btn{border:1px solid var(--linestrong);color:#fff;padding:10px 24px;font-size:12px;letter-spacing:.2em;cursor:pointer;text-transform:uppercase;background:transparent;font-family:inherit}
 .btn:hover{background:var(--linestrong);color:var(--bg)}
-.mode-select{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
-.mode{border:1px solid var(--line);padding:12px 20px;cursor:pointer;text-align:center;transition:all .2s}
+.mode-select,.session-select{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.mode{border:1px solid var(--line);padding:12px 20px;cursor:pointer;text-align:center;transition:all .2s;background:transparent;color:var(--ink);font-family:inherit}
 .mode:hover{border-color:var(--linestrong)}.mode.on{border-color:#fff;color:#fff}
 .mode .label{font-size:13px;letter-spacing:.1em}.mode .desc{font-size:11px;color:var(--dim);margin-top:4px}
+.session-select{margin-top:6px}
+.session-select .mode{flex:1;max-width:260px;padding:10px 16px}
 .done-msg{text-align:center;padding:60px 0}
 .done-msg h2{font-family:var(--serif);font-size:36px;margin:0}
 .done-msg .pct{font-size:48px;color:#fff;margin-top:16px}
 .done-msg .sub{color:var(--dim);margin-top:8px;font-size:14px}
+.done-msg .links{margin-top:22px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 .foot{margin-top:60px;border-top:1px solid var(--line);padding-top:18px;font-size:11px;letter-spacing:.2em;color:var(--faint);display:flex;justify-content:space-between}
 @media(max-width:720px){.hero .glyph{font-size:120px}.choices{grid-template-columns:1fr}}
 </style>
 <script src="hanja-data.js"></script>
+<script src="audio.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -54,10 +65,11 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
       <div class="vol">QUIZ</div>
     </div>
     <div class="hr"></div>
-    <nav><a href="index.html">Home</a><a href="levels.html">Levels</a><a href="lessons.html?l=0">Lessons</a><a href="quiz.html" class="on">Quiz</a></nav>
+    <nav><a href="index.html">Home</a><a href="levels.html">Levels</a><a href="lessons.html?l=0">Lessons</a><a href="reading.html?r=가">Readings</a><a href="quiz.html" class="on">Quiz</a></nav>
   </header>
 
   <div class="pills" id="pills"></div>
+  <div class="streak" id="streak" style="display:none"></div>
 
   <section class="hero" id="heroSection">
     <div class="glyph" id="quizGlyph">?</div>
@@ -67,20 +79,36 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 
   <div class="mode-select" id="modeSelect">
     <div class="mode on" data-mode="reading">
-      <div class="label">_glyph → Reading</div>
+      <div class="label">Glyph → Reading</div>
       <div class="desc">See the hanja, pick the Korean reading</div>
     </div>
     <div class="mode" data-mode="meaning">
-      <div class="label">_glyph → Meaning</div>
-      <div class="desc">See the hanja, pick the English meaning</div>
+      <div class="label">Glyph → Meaning</div>
+      <div class="desc">See the hanja, pick the Korean meaning</div>
     </div>
-    <div class="mode" data-mode="reverse">
-      <div class="label">_Reading → Glyph</div>
-      <div class="desc">See the reading, pick the hanja</div>
+    <div class="mode" data-mode="homophone">
+      <div class="label">Homophones</div>
+      <div class="desc">정 · 고요할 — pick the right character</div>
+    </div>
+    <div class="mode" data-mode="word">
+      <div class="label">Word → Hanja</div>
+      <div class="desc">Pick the hanja spelling of a Korean word</div>
+    </div>
+  </div>
+
+  <div class="session-select" id="sessionSelect">
+    <div class="mode" data-session="review" id="sessReview">
+      <div class="label">Review due</div>
+      <div class="desc" id="sessReviewDesc">spaced repetition</div>
+    </div>
+    <div class="mode on" data-session="random">
+      <div class="label">Random</div>
+      <div class="desc">random questions</div>
     </div>
   </div>
 
   <div class="choices" id="choices"></div>
+  <div class="feedback" id="feedback"></div>
   <div class="score" id="score"></div>
   <div class="btn-row" id="btnRow"></div>
 
@@ -88,7 +116,7 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
     <h2>Quiz Complete!</h2>
     <div class="pct" id="finalPct"></div>
     <div class="sub" id="finalSub"></div>
-    <div class="btn-row"><button class="btn" onclick="location.reload()">Try Again</button></div>
+    <div class="links" id="doneLinks"></div>
   </div>
 
   <footer class="foot"><span>한자 NOTE</span><span>QUIZ · test your knowledge · <a href="https://ko-fi.com/d7d7m" target="_blank" rel="noopener">Support on Ko-fi ↗</a></span></footer>
@@ -98,100 +126,268 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
   var D=window.HANJA;
   var qs=new URLSearchParams(location.search);
   var lv=parseInt(qs.get('l')); if(isNaN(lv)) lv=-1; // -1 = all levels
-  var numQ=parseInt(qs.get('n')); if(isNaN(numQ)) numQ=20;
+  var nParam=parseInt(qs.get('n')); if(isNaN(nParam)) nParam=0;
+  var srsParam=qs.get('srs')==='1';
 
   function el(id){return document.getElementById(id)}
-
-  // Pills
-  var pills=el('pills');
-  [{l:-1,k:'All Levels'}].concat(D.levels).forEach(function(m){
-    var a=document.createElement('a');a.className='pill'+(m.l===lv?' on':'');
-    a.href='quiz.html?l='+m.l+'&n='+numQ;
-    a.textContent=m.ko||'All Levels';pills.appendChild(a);
-  });
-
-  // Mode selection
-  var mode='reading';
-  el('modeSelect').addEventListener('click',function(e){
-    var md=e.target.closest('.mode');if(!md)return;
-    el('modeSelect').querySelectorAll('.mode').forEach(function(m){m.classList.remove('on');});
-    md.classList.add('on');mode=md.getAttribute('data-mode');
-  });
-
-  // Build question pool
-  var pool=D.hanja.filter(function(h){return lv<0||h.lv===lv;});
-  // Shuffle
-  for(var i=pool.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
-  var questions=pool.slice(0,numQ);
-  var qIdx=0, correct=0, answered=false;
-
   function shuffle(arr){
     for(var i=arr.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=arr[i];arr[i]=arr[j];arr[j]=t;}
     return arr;
   }
 
+  // ---- spaced repetition (Leitner-style) ----
+  var SRS_KEY='hanjasrs', STREAK_KEY='hanjastreak', INTERVALS=[0,1,3,7,14,30];
+  function today(){ return Math.floor(Date.now()/86400000); }
+  function loadSRS(){ try{return JSON.parse(localStorage.getItem(SRS_KEY)||'{}');}catch(e){return {};} }
+  function saveSRS(s){ try{localStorage.setItem(SRS_KEY,JSON.stringify(s));}catch(e){} }
+  function loadStreak(){ try{return JSON.parse(localStorage.getItem(STREAK_KEY)||'{}');}catch(e){return {};} }
+  function saveStreak(s){ try{localStorage.setItem(STREAK_KEY,JSON.stringify(s));}catch(e){} }
+  function dueCount(){
+    var sched=loadSRS(), t=today(), n=0;
+    D.hanja.forEach(function(h){ var r=sched[h.c]; if(!r||r.d<=t) n++; });
+    return n;
+  }
+  function renderStreak(){
+    var s=loadStreak();
+    var d=el('streak');
+    if(s.n>1){ d.style.display=''; d.textContent='🔥 '+s.n+'-day streak'; }
+    else d.style.display='none';
+  }
+  function bumpStreak(){
+    var t=today(), s=loadStreak();
+    if(s.last===t) return;
+    s.n = (s.last===t-1)?((s.n||0)+1):1;
+    s.last=t; saveStreak(s);
+    renderStreak();
+  }
+  function record(ch,correct){
+    var sched=loadSRS(), r=sched[ch]||{b:0,d:today(),l:0};
+    if(correct){ r.b=Math.min((r.b||0)+1,5); r.d=today()+INTERVALS[r.b]; }
+    else { r.b=0; r.d=today(); r.l=(r.l||0)+1; }
+    sched[ch]=r; saveSRS(sched);
+    el('sessReviewDesc').textContent=dueCount()+' due · spaced repetition';
+    bumpStreak();
+  }
+
+  // ---- session setup ----
+  var session = srsParam ? 'review' : 'random';
+  var mode='reading';
+
+  function poolChars(){
+    return D.hanja.filter(function(h){return lv<0||h.lv===lv;});
+  }
+  function buildQuestions(){
+    var pool=poolChars();
+    if(session==='review'){
+      var sched=loadSRS(), t=today();
+      var due=pool.filter(function(h){ var r=sched[h.c]; return !r||r.d<=t; });
+      due.sort(function(a,b){ var ra=sched[a.c],rb=sched[b.c]; return (ra?ra.d:0)-(rb?rb.d:0); });
+      var cap = nParam>0 ? nParam : due.length;
+      if(due.length>cap) due=due.slice(0,cap);
+      if(cap<10) cap=10; // never fewer than 10; fill with new chars
+      var questions=due.slice();
+      if(questions.length<cap){
+        var unsched=pool.filter(function(h){return !sched[h.c];});
+        shuffle(unsched);
+        questions=questions.concat(unsched.slice(0,cap-questions.length));
+      }
+      return questions;
+    }
+    shuffle(pool);
+    return pool.slice(0, nParam>0?nParam:20);
+  }
+
+  // ---- question rendering ----
+  var questions=[], qIdx=0, correct=0, answered=false, curChar=null, curWord=null;
+
+  function setPrompt(glyphHtml, reading, meaning, wordGlyph){
+    var g=el('quizGlyph');
+    if(wordGlyph){ g.className='glyph word-glyph'; }
+    else { g.className='glyph'; }
+    g.innerHTML=glyphHtml||'';
+    el('quizReading').textContent=reading||'';
+    el('quizMeaning').textContent=meaning||'';
+  }
+  function renderChoices(opts, optsText){
+    var choices=el('choices'); choices.innerHTML='';
+    opts.forEach(function(o){
+      var d=document.createElement('div'); d.className='choice';
+      d.innerHTML=optsText(o);
+      d.setAttribute('data-correct',o.correct?'1':'0');
+      d.setAttribute('data-label',o.label);
+      choices.appendChild(d);
+    });
+  }
+  function renderScore(){
+    el('score').innerHTML='<b>'+(qIdx+1)+' / '+questions.length+'</b> · <b>'+correct+'</b> correct';
+  }
+
+  function buildQuestion(q){
+    var pool=poolChars();
+    if(mode==='reading'){
+      var others=pool.filter(function(h){return h.c!==q.c;});
+      var seenR={}, chosen=[];
+      shuffle(others);
+      others.forEach(function(h){ if(chosen.length<3 && !seenR[h.r]){ seenR[h.r]=1; chosen.push(h); } });
+      var opts=[{label:q.r,correct:true}];
+      chosen.forEach(function(h){ opts.push({label:h.r,correct:false}); });
+      shuffle(opts);
+      setPrompt(q.c,'','See the hanja — what is its Korean reading?');
+      renderChoices(opts, function(o){return o.label;});
+      curChar=q; curWord=null;
+    }
+    else if(mode==='meaning'){
+      var others=pool.filter(function(h){return h.c!==q.c;});
+      shuffle(others);
+      var opts=[{label:q,correct:true}].concat(others.slice(0,3).map(function(h){return {label:h,correct:false};}));
+      shuffle(opts);
+      setPrompt(q.c,'','See the hanja — what does it mean?');
+      renderChoices(opts, function(o){
+        var h=o.label;
+        return (h.h||'')+(h.eng?'<span class="sub">'+h.eng+'</span>':'');
+      });
+      curChar=q; curWord=null;
+    }
+    else if(mode==='homophone'){
+      var br={};
+      pool.forEach(function(h){ (br[h.r]=br[h.r]||[]).push(h); });
+      var rs=Object.keys(br).filter(function(r){return br[r].length>=4;});
+      if(rs.length){
+        var r=rs[Math.floor(Math.random()*rs.length)];
+        var opts=br[r].slice(); shuffle(opts);
+        var qq=opts[0];
+        opts=opts.slice(0,4).map(function(h){return {label:h,correct:h.c===qq.c};});
+        shuffle(opts);
+        setPrompt('','read '+r, qq.h+(qq.eng?' · '+qq.eng:''), false);
+        renderChoices(opts, function(o){return '<span style="font-family:var(--serif);font-size:34px">'+o.label.c+'</span><span class="sub">'+o.label.h+'</span>';});
+        curChar=qq; curWord=null;
+      } else {
+        // fallback: same task, distinct readings
+        var others=pool.filter(function(h){return h.c!==q.c;});
+        var seenR={}, chosen=[];
+        shuffle(others);
+        others.forEach(function(h){ if(chosen.length<3 && !seenR[h.r]){ seenR[h.r]=1; chosen.push(h); } });
+        var opts=[{label:q,correct:true}].concat(chosen.map(function(h){return {label:h,correct:false};}));
+        shuffle(opts);
+        setPrompt('','read '+q.r, q.h+(q.eng?' · '+q.eng:''), false);
+        renderChoices(opts, function(o){return '<span style="font-family:var(--serif);font-size:34px">'+o.label.c+'</span><span class="sub">'+o.label.h+'</span>';});
+        curChar=q; curWord=null;
+      }
+    }
+    else if(mode==='word'){
+      var qq=q;
+      if(!(qq.words&&qq.words.length)){
+        var withWords=pool.filter(function(h){return h.words&&h.words.length;});
+        shuffle(withWords);
+        qq=withWords[0]||qq;
+      }
+      var w=qq.words[Math.floor(Math.random()*qq.words.length)];
+      var hjSet={}, all=[];
+      pool.forEach(function(h){
+        (h.words||[]).forEach(function(x){
+          if(x.hj && !hjSet[x.hj]){ hjSet[x.hj]=1; all.push(x.hj); }
+        });
+      });
+      var opts=[{label:w.hj,correct:true}];
+      shuffle(all);
+      for(var i=0;i<all.length && opts.length<4;i++){
+        if(all[i]!==w.hj) opts.push({label:all[i],correct:false});
+      }
+      shuffle(opts);
+      setPrompt('', w.ko, 'Which hanja spelling?', true);
+      renderChoices(opts, function(o){return '<span style="font-family:var(--serif);font-size:30px">'+o.label+'</span>';});
+      curChar=qq; curWord=w;
+    }
+  }
+
   function render(){
+    answered=false;
+    el('feedback').innerHTML='';
     if(qIdx>=questions.length){
       el('heroSection').style.display='none';
       el('modeSelect').style.display='none';
+      el('sessionSelect').style.display='none';
       el('choices').innerHTML='';
+      el('feedback').innerHTML='';
       el('doneMsg').style.display='';
       el('finalPct').textContent=Math.round(correct/questions.length*100)+'%';
       el('finalSub').textContent=correct+' correct out of '+questions.length+' questions';
-      el('score').innerHTML='';el('btnRow').innerHTML='';return;
+      var links=el('doneLinks'); links.innerHTML='';
+      var again=document.createElement('button'); again.className='btn'; again.textContent='Try Again'; again.onclick=function(){location.reload();};
+      links.appendChild(again);
+      var d=dueCount();
+      if(d>0){
+        var a=document.createElement('a'); a.className='btn'; a.href='quiz.html?srs=1'; a.textContent=d+' still due →';
+        links.appendChild(a);
+      }
+      el('score').innerHTML=''; el('btnRow').innerHTML='';
+      return;
     }
-    var q=questions[qIdx];
-    answered=false;
-    // Get 4 choices including correct
-    var others=pool.filter(function(h){return h.c!==q.c;});
-    shuffle(others);
-    var opts=[q].concat(others.slice(0,3));
-    shuffle(opts);
-
-    if(mode==='reading'||mode==='meaning'){
-      el('quizGlyph').textContent=q.c;
-      el('quizReading').textContent=q.h+' '+q.r;
-      el('quizMeaning').textContent='';
-      var choices=el('choices');choices.innerHTML='';
-      opts.forEach(function(o){
-        var d=document.createElement('div');d.className='choice';
-        d.textContent=mode==='reading'?(o.h+' '+o.r):(o.eng||o.h);
-        d.setAttribute('data-correct',o.c===q.c?'1':'0');
-        d.setAttribute('data-c',o.c);
-        choices.appendChild(d);
-      });
-    } else {
-      el('quizGlyph').textContent='';
-      el('quizReading').textContent=q.h+' '+q.r;
-      el('quizMeaning').textContent=q.eng||q.h;
-      var choices=el('choices');choices.innerHTML='';
-      opts.forEach(function(o){
-        var d=document.createElement('div');d.className='choice';
-        d.style.fontFamily='var(--serif)';d.style.fontSize='36px';
-        d.textContent=o.c;
-        d.setAttribute('data-correct',o.c===q.c?'1':'0');
-        d.setAttribute('data-c',o.c);
-        choices.appendChild(d);
-      });
-    }
-    el('score').innerHTML='<b>'+(qIdx+1)+' / '+questions.length+'</b> · <b>'+correct+'</b> correct';
+    buildQuestion(questions[qIdx]);
+    renderScore();
     el('btnRow').innerHTML='';
   }
 
   el('choices').addEventListener('click',function(e){
-    var d=e.target.closest('.choice');if(!d||answered)return;
+    var d=e.target.closest('.choice'); if(!d||answered) return;
     answered=true;
     var isCorrect=d.getAttribute('data-correct')==='1';
-    if(isCorrect)correct++;
-    // Highlight
+    if(isCorrect) correct++;
     el('choices').querySelectorAll('.choice').forEach(function(c){
-      if(c.getAttribute('data-correct')==='1')c.classList.add('correct');
-      else if(c===d&&!isCorrect)c.classList.add('wrong');
+      if(c.getAttribute('data-correct')==='1') c.classList.add('correct');
+      else if(c===d&&!isCorrect) c.classList.add('wrong');
     });
-    el('score').innerHTML='<b>'+(qIdx+1)+' / '+questions.length+'</b> · <b>'+correct+'</b> correct';
-    setTimeout(function(){qIdx++;render();},1200);
+    if(session==='review' && curChar) record(curChar.c,isCorrect);
+    else bumpStreak();
+    if(curChar){
+      var ch=curChar;
+      var fb=el('feedback');
+      fb.innerHTML='<span class="fb-char">'+ch.c+'</span> · '+ch.h+' '+ch.r+
+        (curWord?('<span style="opacity:.7"> — '+curWord.ko+' '+curWord.hj+'</span>'):'')+
+        ' <a class="fb-study" href="study.html?han='+encodeURIComponent(ch.c)+'">study →</a>';
+      if(window.speakKo) window.speakKo(curWord?curWord.ko:(ch.h+' '+ch.r));
+    }
+    renderScore();
+    setTimeout(function(){qIdx++;render();},1500);
   });
 
+  // ---- pills ----
+  var pills=el('pills');
+  [{l:-1,k:'All Levels'}].concat(D.levels).forEach(function(m){
+    var a=document.createElement('a');a.className='pill'+(m.l===lv?' on':'');
+    a.href='quiz.html?l='+m.l+(session==='review'?'&srs=1':'')+(nParam>0?'&n='+nParam:'');
+    a.textContent=m.ko||'All Levels';pills.appendChild(a);
+  });
+
+  // ---- session toggle ----
+  function syncSessionUI(){
+    el('sessReview').classList.toggle('on',session==='review');
+    el('sessionSelect').querySelector('[data-session="random"]').classList.toggle('on',session==='random');
+    el('sessReviewDesc').textContent=dueCount()+' due · spaced repetition';
+    renderStreak();
+  }
+  el('sessionSelect').addEventListener('click',function(e){
+    var sd=e.target.closest('.mode[data-session]'); if(!sd) return;
+    var next=sd.getAttribute('data-session');
+    if(next===session) return;
+    session=next;
+    syncSessionUI();
+    questions=buildQuestions(); qIdx=0; correct=0;
+    render();
+  });
+
+  // ---- mode toggle ----
+  el('modeSelect').addEventListener('click',function(e){
+    var md=e.target.closest('.mode[data-mode]'); if(!md) return;
+    mode=md.getAttribute('data-mode');
+    el('modeSelect').querySelectorAll('.mode').forEach(function(m){m.classList.remove('on');});
+    md.classList.add('on');
+    questions=buildQuestions(); qIdx=0; correct=0;
+    render();
+  });
+
+  syncSessionUI();
+  questions=buildQuestions();
   render();
 })();
 </script>
