@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>한자 NOTE — Home</title>
+<style>
+/* Hanja NOTE — minimal editorial design */
+:root{
+  --bg:#121212;
+  --ink:#f2efe6;
+  --paper:#f2efe6;
+  --dim:rgba(242,239,230,.55);
+  --faint:rgba(242,239,230,.35);
+  --line:rgba(242,239,230,.22);
+  --linestrong:rgba(242,239,230,.6);
+  --serif:'Georgia','Times New Roman',serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Helvetica Neue',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 32px 80px}
+
+/* header row */
+.top{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:14px}
+.brand{font-size:19px;letter-spacing:.3em;color:#fff}
+.brand .han{font-family:var(--serif);letter-spacing:.06em}
+.vol{font-size:11px;letter-spacing:.28em;color:var(--dim)}
+.hr{border:0;border-top:1px solid var(--line)}
+
+/* nav */
+nav{display:flex;gap:26px;justify-content:flex-end;padding:14px 0;font-size:12px;letter-spacing:.22em;text-transform:uppercase}
+nav a{color:var(--dim);text-decoration:none}
+nav a:hover{color:#fff}
+nav a.on{color:#fff}
+
+/* hero */
+.hero{padding:70px 0 50px}
+.home-title{font-family:var(--serif);font-size:64px;line-height:1.05;margin:0;letter-spacing:.02em;font-weight:400}
+.home-title .hangul small{display:block;font-size:15px;letter-spacing:.42em;color:var(--dim);font-family:'Helvetica Neue',Arial,sans-serif;font-weight:400;margin-top:16px}
+.method{display:flex;gap:0;margin-top:44px}
+.method .step{flex:1;border-top:1px solid var(--linestrong);padding-top:14px;margin-right:22px}
+.method .step:last-child{margin-right:0}
+.method .num{font-size:11px;letter-spacing:.3em;color:var(--dim)}
+.method .lab{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:#fff;margin-top:4px}
+.method .metacopy{font-size:12.5px;color:var(--dim);margin-top:6px}
+
+/* section label */
+.sec{padding:30px 0 10px;display:flex;align-items:center;gap:16px}
+.sec .tag{font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase}
+.sec .rule{flex:1;border-top:1px solid var(--linestrong)}
+
+/* level nav big */
+.levels{display:flex;border-top:1px solid var(--linestrong);margin-top:24px}
+.lvl{flex:1;padding:30px 24px 22px;text-decoration:none;color:var(--ink);position:relative}
+.lvl + .lvl{border-left:1px solid var(--line)}
+.lvl .glyph{font-family:var(--serif);font-size:64px;color:var(--faint);line-height:1;transition:color .2s}
+.lvl:hover .glyph{color:#fff}
+.lvl .en{font-size:15px;margin-top:14px;letter-spacing:.04em}
+.lvl .ko{font-size:12px;letter-spacing:.16em;margin-top:4px;color:var(--dim)}
+.lvl .cnt{font-size:12px;margin-top:10px;color:var(--faint)}
+.lvl .go{margin-top:16px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+.lvl:hover .go{color:#fff}
+
+/* cards grid for level lists */
+.d-gray{font-family:var(--serif);font-size:96px;color:var(--faint);margin:0;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px;margin-top:26px}
+.card{border:1px solid var(--line);padding:26px;text-decoration:none;color:var(--ink);display:block;transition:border-color .2s}
+.card:hover{border-color:var(--linestrong)}
+.card .glyph{font-family:var(--serif);font-size:58px;line-height:1}
+.card .reading{font-size:18px;margin-top:12px}
+.card .meaning{font-size:12px;letter-spacing:.06em;color:var(--dim);margin-top:2px;text-transform:uppercase}
+.card .tip{font-size:13px;color:var(--dim);margin-top:14px;border-top:1px solid var(--line);padding-top:12px;min-height:56px}
+.card .tags{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px}
+.tags span{font-size:11px;letter-spacing:.1em;color:var(--faint);border:1px solid var(--line);padding:3px 8px}
+.card .go{margin-top:14px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+
+/* study page */
+.bigflex{display:flex;gap:54px;padding:60px 0 40px;align-items:center}
+.bigflex .glyphbig{font-family:var(--serif);font-size:330px;line-height:.9;color:#fff;flex:none}
+.study-side .ko{font-family:var(--serif);font-size:52px;margin:0}
+.study-side .en{font-size:13px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-top:6px}
+.study-side .tip{margin-top:26px;border-top:1px solid var(--linestrong);padding-top:18px;font-size:15px;color:var(--ink);max-width:340px}
+.study-side .tip .gloss{display:block;font-size:12px;color:var(--dim);margin-top:6px;font-style:italic}
+.study-side .meta{margin-top:12px;font-size:11px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase}
+
+/* word columns */
+.cols{display:flex;border-top:1px solid var(--linestrong);margin-top:6px}
+.col{flex:1;padding:24px 22px 20px;min-width:0}
+.col + .col{border-left:1px solid var(--line)}
+.col .num{font-family:var(--serif);font-size:13px;color:var(--faint);letter-spacing:.2em}
+.col .wordhead{margin-top:12px}
+.col .wordhead .korean{font-size:20px}
+.col .wordhead .hanja{font-family:var(--serif);font-size:20px;color:#fff}
+.col .parts{margin-top:8px;font-size:11px;letter-spacing:.04em;color:var(--dim);line-height:1.8}
+.col .gloss{margin-top:12px;font-size:12px;font-style:italic;color:var(--faint)}
+.col .meaning-en{display:block;margin-top:6px;font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.12em;font-style:normal}
+
+/* sentence box */
+.sentence{margin-top:8px;border-top:1px solid var(--linestrong);padding-top:26px;padding-bottom:30px}
+.sentence .lead{font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase}
+.sentence .box{display:inline-block;background:#fff;color:#0d0d0d;padding:0 8px;font-weight:600}
+.sentence .kotext{font-size:21px;margin-top:12px;color:#fff}
+.sentence .tr{margin-top:8px;font-size:14px;font-style:italic;color:var(--dim)}
+
+/* footer */
+.foot{margin-top:60px;border-top:1px solid var(--line);padding-top:18px;font-size:11px;letter-spacing:.2em;color:var(--faint);display:flex;justify-content:space-between}
+
+/* pill level chips */
+.pills{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.pill{border:1px solid var(--line);color:var(--dim);padding:8px 16px;text-decoration:none;font-size:12px;letter-spacing:.16em}
+.pill.on{color:#fff;border-color:#fff}
+.pill:hover{color:#fff;border-color:var(--linestrong)}
+@media(max-width:720px){
+  .bigflex{flex-direction:column;gap:30px}
+  .glyphbig{font-size:200px!important}
+  .cols{flex-direction:column}
+  .col + .col{border-left:0;border-top:1px solid var(--line)}
+  .levels{flex-direction:column}
+  .lvl + .lvl{border-left:0;border-top:1px solid var(--line)}
+  .method{flex-direction:column;gap:0}
+  .method .step{margin-right:0;margin-bottom:20px}
+  .home-title{font-size:44px}
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <div class="brand"><span class="han">한자</span> NOTE</div>
+      <div class="vol">VOL.1 · 한자 첫걸음</div>
+    </div>
+    <div class="hr"></div>
+    <nav>
+      <a href="index.html" class="on">Home</a>
+      <a href="levels.html">Levels</a>
+      <a href="study.html?han=山">Study</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1 class="home-title">한 &#12302;學&#12303; · 여행<br><span class="hangul"><small>LEARN KOREAN THROUGH HANJA — 한자를 한국어로</small></span></h1>
+  </section>
+
+  <div class="sec"><span class="tag">Our method</span><span class="rule"></span></div>
+  <div class="method">
+    <div class="step"><div class="num">01</div><div class="lab">See</div><div class="metacopy">Recall the shape — what does the letter look like?</div></div>
+    <div class="step"><div class="num">02</div><div class="lab">Memorize</div><div class="metacopy">A tip ties the shape to its meaning in Korean.</div></div>
+    <div class="step"><div class="num">03</div><div class="lab">Use</div><div class="metacopy">Meet it inside three real Korean sentences.</div></div>
+  </div>
+
+  <div class="sec"><span class="tag">Choose your level<span style="opacity:.7"> · 1,795 education hanja</span></span><span class="rule"></span></div>
+  <div class="levels">
+    <a class="lvl" href="level.html?l=0">
+      <div class="glyph">山</div>
+      <div class="en">Beginner</div>
+      <div class="ko">초급 · 메 산</div>
+      <div class="cnt">600 hanja · the world in pictures</div>
+      <div class="go">Start →</div>
+    </a>
+    <a class="lvl" href="level.html?l=1">
+      <div class="glyph">心</div>
+      <div class="en">Intermediate</div>
+      <div class="ko">중급 · 마음 심</div>
+      <div class="cnt">600 hanja · words &amp; ideas</div>
+      <div class="go">Start →</div>
+    </a>
+    <a class="lvl" href="level.html?l=2">
+      <div class="glyph">德</div>
+      <div class="en">Advanced</div>
+      <div class="ko">고급 · 덕 덕</div>
+      <div class="cnt">595 hanja · virtue &amp; abstraction</div>
+      <div class="go">Start →</div>
+    </a>
+  </div>
+
+  <footer class="foot"><span>한자 NOTE</span><span>A minimal companion for your Korean journey · 2026</span></footer>
+</div>
+</body>
+</html>

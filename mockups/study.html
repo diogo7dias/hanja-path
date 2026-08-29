@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>한자 NOTE — Study</title>
+<style>
+:root{--bg:#121212;--ink:#f2efe6;--dim:rgba(242,239,230,.55);--faint:rgba(242,239,230,.35);--line:rgba(242,239,230,.22);--linestrong:rgba(242,239,230,.6);--serif:'Georgia','Times New Roman',serif}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Helvetica Neue',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 32px 80px}
+.top{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:14px}
+.brand{font-size:19px;letter-spacing:.3em;color:#fff}
+.brand a{color:#fff;text-decoration:none}
+.brand .han{font-family:var(--serif);letter-spacing:.06em}
+.vol{font-size:11px;letter-spacing:.28em;color:var(--dim)}
+.hr{border:0;border-top:1px solid var(--line)}
+nav{display:flex;gap:26px;justify-content:flex-end;padding:14px 0;font-size:12px;letter-spacing:.22em;text-transform:uppercase}
+nav a{color:var(--dim);text-decoration:none}
+nav a:hover{color:#fff}
+nav a.on{color:#fff}
+.pills{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+.pill{border:1px solid var(--line);color:var(--dim);padding:8px 16px;text-decoration:none;font-size:12px;letter-spacing:.16em}
+.pill.on{color:#fff;border-color:#fff}
+.pill:hover{color:#fff;border-color:var(--linestrong)}
+.bigflex{display:flex;gap:54px;padding:60px 0 40px;align-items:center}
+.bigflex .glyphbig{font-family:var(--serif);font-size:330px;line-height:.9;color:#fff;flex:none}
+.study-side .ko{font-family:var(--serif);font-size:52px;margin:0}
+.study-side .en{font-size:13px;letter-spacing:.3em;text-transform:uppercase;color:var(--dim);margin-top:6px}
+.study-side .tip{margin-top:26px;border-top:1px solid var(--linestrong);padding-top:18px;font-size:15px;color:var(--ink);max-width:340px}
+.study-side .tip .gloss{display:block;font-size:12px;color:var(--dim);margin-top:6px;font-style:italic}
+.study-side .meta{margin-top:18px;font-size:11px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase}
+.study-side .meta a{color:var(--dim)}
+.sec{padding:30px 0 8px;display:flex;align-items:center;gap:16px}
+.sec .tag{font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase}
+.sec .rule{flex:1;border-top:1px solid var(--linestrong)}
+.cols{display:flex;border-top:1px solid var(--linestrong);margin-top:6px}
+.col{flex:1;padding:24px 22px 20px;min-width:0}
+.col + .col{border-left:1px solid var(--line)}
+.col .num{font-family:var(--serif);font-size:13px;color:var(--faint);letter-spacing:.2em}
+.col .wordhead{margin-top:12px}
+.col .wordhead .korean{font-size:20px}
+.col .wordhead .hanja{font-family:var(--serif);font-size:20px;color:#fff}
+.col .parts{margin-top:8px;font-size:11px;letter-spacing:.04em;color:var(--dim);line-height:1.8}
+.col .gloss{margin-top:12px;font-size:12px;font-style:italic;color:var(--faint)}
+.limited-note{flex:1;padding:18px 22px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);line-height:1.8}.limited-note span{font-style:italic;color:var(--faint)}
+.sentence{margin-top:8px;border-top:1px solid var(--linestrong);padding-top:26px;padding-bottom:30px}
+.sentence .lead{font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase}
+.sentence .kotext{font-size:21px;margin-top:12px;color:#fff}
+.sentence .box{display:inline-block;background:#fff;color:#0d0d0d;padding:0 8px;font-weight:600}
+.sentence .tr{margin-top:8px;font-size:14px;font-style:italic;color:var(--dim)}
+.foot{margin-top:60px;border-top:1px solid var(--line);padding-top:18px;font-size:11px;letter-spacing:.2em;color:var(--faint);display:flex;justify-content:space-between}
+.big-flex{display:flex;justify-content:space-between;gap:30px}
+a{color:var(--dim)}
+@media(max-width:720px){
+  .bigflex{flex-direction:column;gap:30px}
+  .glyphbig{font-size:200px!important}
+  .cols{flex-direction:column}
+  .col + .col{border-left:0;border-top:1px solid var(--line)}
+}
+</style>
+<script src="hanja-data.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top"><div class="brand"><a href="index.html"><span class="han">한자</span> NOTE</a></div><div class="vol" id="vol">HANJA NOTE</div></div>
+    <div class="hr"></div>
+    <nav><a href="index.html">Home</a><a href="levels.html" id="navlevels">Levels</a><a href="study.html?han=山" class="on">Study</a></nav>
+  </header>
+
+  <div class="pills" id="pills"></div>
+
+  <div class="bigflex">
+    <div class="glyphbig" id="glyph">交</div>
+    <div class="study-side">
+      <div class="ko" id="reading">사귈 교</div>
+      <div class="en" id="meaning">EXCHANGE, MIX</div>
+      <div class="tip"><span id="tipko"></span><span class="gloss" id="tipgloss"></span></div>
+      <div class="meta" id="meta"><a href="level.html?l=0">Back to level →</a></div>
+    </div>
+  </div>
+
+  <div class="sec"><span class="tag">Meet it in three words</span><span class="rule"></span></div>
+  <div class="cols" id="cols"></div>
+
+  <div class="sentence" id="sentence">
+    <div class="lead">Use it — your Korean journey</div>
+    <div class="kotext" id="kotext"></div>
+    <div class="tr" id="senttr"></div>
+  </div>
+
+  <footer class="foot"><span>한자 NOTE</span><span id="foottag">STUDY · every character · one page</span></footer>
+</div>
+<script>
+(function(){
+  var qs=new URLSearchParams(location.search);
+  var q=qs.get('han')||'山';
+  var D=window.HANJA;
+  var h=D.hanja.filter(function(x){return x.c===q;})[0];
+  if(!h){ h=D.hanja[0]; }
+  var lvNames=['초급','중급','고급'];
+  function set(id,t){document.getElementById(id).textContent=t;}
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+  // pills
+  var pills=document.getElementById('pills');
+  D.levels.forEach(function(m,i){
+    var a=document.createElement('a');
+    a.className='pill'+(i===h.lv?' on':'');
+    a.href='level.html?l='+i;
+    a.textContent=m.ko+' ('+m.n+')';
+    pills.appendChild(a);
+  });
+
+  set('vol','LEVEL '+(h.lv+1)+' · '+h.c+' · '+lvNames[h.lv]);
+  set('glyph', h.c);
+  set('reading', h.h+' '+h.r);
+  set('meaning', (h.eng||h.h).toUpperCase());
+  var meta=document.getElementById('meta');
+  meta.innerHTML='<a href="level.html?l='+h.lv+'">← Back to '+lvNames[h.lv]+' · '+h.r+'</a>';
+
+  // tip
+  var tipko=document.getElementById('tipko');
+  if(h.tip){
+    tipko.textContent=h.tip;
+  } else if(h.eng){
+    tipko.textContent=h.h+' — 이 글자는 한국어 단어의 뿌리로 쓰여요. 뜻을 떠올리며 소리를 내어 보세요.';
+  } else {
+    tipko.textContent=h.h+' ('+h.r+') 소리를 한국어 단어에서 찾아 기억하세요.';
+  }
+  document.getElementById('tipgloss').textContent = h.eng? ('HUUN · ' + h.h + '  ·  read '+h.r) : ('read '+h.r);
+
+  // Show only trustworthy examples; never pad the lesson with invented words.
+  var cols=document.getElementById('cols');
+  cols.innerHTML='';
+  var ws=(h.words||[]).slice(0,3);
+  for(var i=0;i<ws.length;i++){
+    var n=(i+1)<10?'0'+(i+1):(i+1);
+    var col=document.createElement('div'); col.className='col';
+    var wd=ws[i];
+    if(wd){
+      col.innerHTML='<div class="num">'+n+'</div>'+
+        '<div class="wordhead"><span class="korean">'+esc(wd.ko)+'</span> <span class="hanja">'+esc(wd.hj)+'</span></div>'+
+        '<div class="parts">'+esc(wd.b||'')+'</div>'+
+        '<div class="gloss">'+esc(wd.gl||'')+'</div>';
+    }
+    cols.appendChild(col);
+  }
+
+  if(!ws.length){
+    cols.innerHTML='<div class="limited-note">이 한자는 현대 한국어에서 예시 단어가 드뭅니다. 먼저 훈음과 읽기를 익힌 뒤 고전 용례를 확인해 보세요.<br><span>Examples are limited in modern Korean. Learn the reading and meaning first, then explore classical usage.</span></div>';
+  } else if(ws.length < 3){
+    cols.insertAdjacentHTML('beforeend','<div class="limited-note">현대 한국어에서 확인된 예시가 '+ws.length+'개뿐입니다. 정확하지 않은 단어를 억지로 추가하지 않았어요.<br><span>Only '+ws.length+' useful modern example'+(ws.length===1?'':'s')+' found; questionable words are intentionally omitted.</span></div>');
+  }
+
+  // sentence — curated sentence when present, else a safe template from the top word
+  var s=document.getElementById('sentence');
+  var sent=h.s;
+  if(!sent && ws.length){
+    var w0=ws[0].ko;
+    var tmpl=[
+      {ko:'오늘은 \"'+w0+'\"라는 단어를 써 볼게요.', en:'Today I\u2019ll try using the word \u201C'+w0+'\u201D.', w:w0},
+      {ko:'\"'+w0+'\"은 일상에서 자주 쓰는 말이에요.', en:'\u201C'+w0+'\u201D is a word used often in daily life.', w:w0},
+      {ko:'친구에게 \"'+w0+'\"에 대해 이야기해 봐요.', en:'Bring up the word \u201C'+w0+'\u201D when you talk to a friend.', w:w0}
+    ];
+    sent=tmpl[ (h.idx||0) % tmpl.length ];
+  }
+  if(sent){
+    s.style.display='';
+    var kt=document.getElementById('kotext');
+    kt.innerHTML = sent.ko.split(sent.w).map(function(part,bi){ return (bi<sent.ko.split(sent.w).length-1) ? part+'<span class="box">'+esc(sent.w)+'</span>' : part; }).join('');
+    set('senttr', sent.en);
+  } else {
+    s.style.display='none';
+  }
+
+  set('foottag','STUDY · '+h.c+' · '+h.h+' '+h.r+' · '+(h.eng||h.h));
+})();
+</script>
+</body>
+</html>
