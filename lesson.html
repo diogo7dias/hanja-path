@@ -18,6 +18,9 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 .pills{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
 .pill{border:1px solid var(--line);color:var(--dim);padding:8px 16px;text-decoration:none;font-size:12px;letter-spacing:.16em}
 .pill.on{color:#fff;border-color:#fff}.pill:hover{color:#fff;border-color:var(--linestrong)}
+.spk{border:1px solid var(--line);background:transparent;color:var(--dim);cursor:pointer;font-size:10px;padding:1px 7px;border-radius:2px;font-family:inherit;vertical-align:middle;line-height:1.5;margin-left:6px}
+.spk:hover{color:#fff;border-color:var(--linestrong)}
+.spk.small{padding:0 5px;font-size:9px;margin-left:2px}
 .hero{padding:50px 0 20px}
 .home-title{font-family:var(--serif);font-size:40px;line-height:1.1;margin:0;font-weight:400}
 .home-title .hangul small{display:block;font-size:14px;letter-spacing:.3em;color:var(--dim);font-family:'Helvetica Neue',Arial,sans-serif;margin-top:10px}
@@ -49,6 +52,7 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 @media(max-width:720px){.grid{grid-template-columns:1fr}.home-title{font-size:32px}}
 </style>
 <script src="hanja-data.js"></script>
+<script src="audio.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -58,7 +62,7 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
       <div class="vol" id="vol">LESSON</div>
     </div>
     <div class="hr"></div>
-    <nav><a href="index.html">Home</a><a href="levels.html">Levels</a><a href="lessons.html?l=0" class="on">Lessons</a><a href="quiz.html">Quiz</a></nav>
+    <nav><a href="index.html">Home</a><a href="levels.html">Levels</a><a href="lessons.html?l=0" class="on">Lessons</a><a href="reading.html?r=가">Readings</a><a href="quiz.html">Quiz</a></nav>
   </header>
 
   <section class="hero">
@@ -116,9 +120,9 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
     var isMastered=progress[h.c]==='mastered';
     var ws=(h.words||[]).slice(0,2);
     var card=document.createElement('div');card.className='card';
-    var wordsHtml=ws.map(function(w){return '<b>'+w.ko+'</b> '+w.hj+' — '+w.gl;}).join('<br>');
+    var wordsHtml=ws.map(function(w){return '<button class="spk small" type="button" data-speak="'+w.ko.replace(/"/g,'&quot;')+'">🔊</button> <b>'+w.ko+'</b> '+w.hj+' — '+w.gl;}).join('<br>');
     card.innerHTML='<div class="glyph">'+h.c+'</div>'+
-      '<div class="reading">'+h.h+' <span style="color:var(--faint)">'+h.r+'</span></div>'+
+      '<div class="reading">'+h.h+' <span style="color:var(--faint)">'+h.r+'</span> <button class="spk" type="button" data-speak="'+h.h+' '+h.r+'">🔊</button></div>'+
       '<div class="meaning">'+(h.eng||h.h)+'</div>'+
       (h.tip?'<div class="tip">'+h.tip+'</div>':'')+
       (wordsHtml?'<div class="words">'+wordsHtml+'</div>':'')+
@@ -127,8 +131,14 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
     grid.appendChild(card);
   });
 
-  // Mastered buttons
+  // Mastered buttons + audio
   grid.addEventListener('click',function(e){
+    var spkBtn=e.target.closest('.spk');
+    if(spkBtn){
+      var t=spkBtn.getAttribute('data-speak');
+      if(window.speakKo&&t) window.speakKo(t);
+      return;
+    }
     var btn=e.target.closest('.btn[data-char]');
     if(!btn)return;
     var ch=btn.getAttribute('data-char');

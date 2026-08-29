@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Hanja NOTE — every education hanja grouped by Korean reading. Same sound, different characters.">
+<meta property="og:title" content="한자 NOTE — Readings">
+<meta property="og:type" content="website">
+<title>한자 NOTE — Readings</title>
+<style>
+:root{--bg:#121212;--ink:#f2efe6;--dim:rgba(242,239,230,.55);--faint:rgba(242,239,230,.35);--line:rgba(242,239,230,.22);--linestrong:rgba(242,239,230,.6);--serif:'Georgia','Times New Roman',serif}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Helvetica Neue',Helvetica,Arial,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 32px 80px}
+.top{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:14px}
+.brand{font-size:19px;letter-spacing:.3em;color:#fff}
+.brand a{color:#fff;text-decoration:none}
+.brand .han{font-family:var(--serif);letter-spacing:.06em}
+.vol{font-size:11px;letter-spacing:.28em;color:var(--dim)}
+.hr{border:0;border-top:1px solid var(--line)}
+nav{display:flex;gap:26px;justify-content:flex-end;padding:14px 0;font-size:12px;letter-spacing:.22em;text-transform:uppercase}
+nav a{color:var(--dim);text-decoration:none}
+nav a:hover{color:#fff}
+nav a.on{color:#fff}
+.hero{padding:50px 0 24px}
+.home-title{font-family:var(--serif);font-size:46px;line-height:1.05;margin:0;letter-spacing:.02em;font-weight:400}
+.home-title .big-r{font-size:64px;display:block;line-height:1}
+.home-title .hangul small{display:block;font-size:15px;letter-spacing:.42em;color:var(--dim);font-family:'Helvetica Neue',Arial,sans-serif;font-weight:400;margin-top:14px}
+.meta-line{margin-top:22px;font-size:13px;color:var(--dim);letter-spacing:.06em}
+.meta-line b{color:#fff;font-weight:500}
+.search{width:100%;background:transparent;border:0;border-bottom:1px solid var(--linestrong);color:#fff;font-size:20px;padding:12px 2px;outline:0;letter-spacing:.04em;font-family:var(--serif)}
+.search::placeholder{color:var(--faint);font-family:'Helvetica Neue',Arial,sans-serif;font-size:14px;letter-spacing:.1em}
+.rchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;max-height:280px;overflow:auto;padding:2px 2px 8px}
+.rchip{border:1px solid var(--line);padding:6px 12px;text-decoration:none;color:var(--dim);font-size:13px;letter-spacing:.08em;display:inline-flex;align-items:baseline;gap:8px;transition:border-color .2s}
+.rchip:hover{color:#fff;border-color:var(--linestrong)}
+.rchip.on{color:#fff;border-color:#fff;background:rgba(242,239,230,.06)}
+.rchip .rc-n{font-size:10px;color:var(--faint);letter-spacing:.05em}
+.sec{padding:30px 0 10px;display:flex;align-items:center;gap:16px}
+.sec .tag{font-size:11px;letter-spacing:.3em;color:var(--dim);text-transform:uppercase}
+.sec .tag b{color:#fff;font-weight:500}
+.sec .rule{flex:1;border-top:1px solid var(--linestrong)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;margin-top:14px}
+.card{border:1px solid var(--line);padding:20px 20px 16px;text-decoration:none;color:var(--ink);display:block;transition:border-color .2s}
+.card:hover{border-color:var(--linestrong)}
+.card .glyph{font-family:var(--serif);font-size:46px;line-height:1}
+.card .reading{font-size:15px;margin-top:10px}
+.card .meaning{font-size:11px;letter-spacing:.14em;color:var(--dim);margin-top:2px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card .word{margin-top:8px;font-size:13px;color:var(--faint)}
+.card .go{margin-top:12px;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--faint)}
+.empty{padding:60px 0;color:var(--dim);font-size:14px;letter-spacing:.06em;text-align:center}
+.nores{display:none}
+.foot{margin-top:60px;border-top:1px solid var(--line);padding-top:18px;font-size:11px;letter-spacing:.2em;color:var(--faint);display:flex;justify-content:space-between}
+</style>
+<script src="hanja-data.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="top">
+      <div class="brand"><a href="index.html"><span class="han">한자</span> NOTE</a></div>
+      <div class="vol">READINGS · 같은 소리의 한자들</div>
+    </div>
+    <div class="hr"></div>
+    <nav><a href="index.html">Home</a><a href="levels.html">Levels</a><a href="lessons.html?l=0">Lessons</a><a href="reading.html?r=가" class="on">Readings</a><a href="quiz.html">Quiz</a></nav>
+  </header>
+
+  <section class="hero">
+    <h1 class="home-title" id="title">…</h1>
+    <div class="meta-line" id="metaLine"></div>
+  </section>
+
+  <input class="search" id="readFilter" type="text" placeholder="FILTER READINGS · 예: 정" autocomplete="off">
+  <div class="rchips" id="rchips"></div>
+
+  <div class="sec"><span class="tag">Characters read as <b id="curR">…</b></span><span class="rule"></span></div>
+  <div class="grid" id="grid"></div>
+  <div class="nores empty" id="nores">No characters have that reading.</div>
+
+  <footer class="foot"><span>한자 NOTE</span><span id="footcount">— · <a href="https://ko-fi.com/d7d7m" target="_blank" rel="noopener">Support on Ko-fi ↗</a></span></footer>
+</div>
+<script>
+(function(){
+  var D=window.HANJA;
+  var qs=new URLSearchParams(location.search);
+  var want=qs.get('r')||'가';
+  function el(id){return document.getElementById(id)}
+
+  // Group every character by its Korean reading
+  var byReading={};
+  D.hanja.forEach(function(h){ (byReading[h.r]=byReading[h.r]||[]).push(h); });
+  var readings=Object.keys(byReading).sort(function(a,b){
+    var d=byReading[b].length-byReading[a].length;
+    return d!==0?d:a.localeCompare(b,'ko');
+  });
+  var cur=byReading[want]?want:readings[0];
+  var chars=byReading[cur].slice().sort(function(a,b){ return a.lv!==b.lv ? a.lv-b.lv : a.idx-b.idx; });
+
+  el('title').innerHTML='<span class="big-r">'+cur+'</span><span class="hangul"><small>READINGS · SAME SOUND, DIFFERENT CHARACTERS</small></span>';
+  el('curR').textContent=cur;
+  el('metaLine').innerHTML='<b>'+chars.length+'</b> characters read as <b>'+cur+'</b> — one sound, many meanings';
+  el('footcount').textContent=cur+' · '+chars.length+' characters · ';
+
+  // Reading chips
+  var chips=el('rchips');
+  function renderChips(filter){
+    chips.innerHTML='';
+    readings.forEach(function(x){
+      if(filter && x.indexOf(filter)<0 && byReading[x][0].h.indexOf(filter)<0) return;
+      var a=document.createElement('a');
+      a.className='rchip'+(x===cur?' on':'');
+      a.href='reading.html?r='+encodeURIComponent(x);
+      a.innerHTML='<span>'+x+'</span><span class="rc-n">'+byReading[x].length+'</span>';
+      chips.appendChild(a);
+    });
+  }
+  renderChips('');
+  el('readFilter').addEventListener('input',function(){ renderChips(el('readFilter').value.trim()); });
+
+  // Character grid
+  var grid=el('grid');
+  chars.forEach(function(h){
+    var w0=(h.words&&h.words[0])||null;
+    var card=document.createElement('a');
+    card.className='card'; card.href='study.html?han='+encodeURIComponent(h.c);
+    card.innerHTML='<div class="glyph">'+h.c+'</div>'+
+      '<div class="reading">'+h.h+' <span style="color:var(--faint)">'+h.r+'</span></div>'+
+      '<div class="meaning">'+(h.eng||h.h)+'</div>'+
+      (w0?'<div class="word">'+w0.ko+' <span style="color:var(--faint)">'+w0.hj+'</span></div>':'')+
+      '<div class="go">Study →</div>';
+    grid.appendChild(card);
+  });
+  el('nores').style.display = chars.length?'none':'';
+})();
+</script>
+</body>
+</html>
