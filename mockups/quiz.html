@@ -237,7 +237,10 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
       curChar=q; curWord=null;
     }
     else if(mode==='meaning'){
-      var others=pool.filter(function(h){return h.c!==q.c;});
+      // Distractors must have a distinct Korean meaning (h.h) — chars like
+      // 집/堂/舍/室 all gloss "집", and same-meaning choices make the
+      // question unanswerable.
+      var others=pool.filter(function(h){return h.c!==q.c && h.h!==q.h;});
       shuffle(others);
       var opts=[{label:q,correct:true}].concat(others.slice(0,3).map(function(h){return {label:h,correct:false};}));
       shuffle(opts);
