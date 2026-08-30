@@ -285,16 +285,23 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
         qq=withWords[0]||qq;
       }
       var w=qq.words[Math.floor(Math.random()*qq.words.length)];
-      var hjSet={}, all=[];
+      var hjSet={}, all=[], koToHjs={};
       pool.forEach(function(h){
         (h.words||[]).forEach(function(x){
-          if(x.hj && !hjSet[x.hj]){ hjSet[x.hj]=1; all.push(x.hj); }
+          if(x.hj){
+            if(!hjSet[x.hj]){ hjSet[x.hj]=1; all.push(x.hj); }
+            // a distractor is ambiguous if it is also a valid spelling of
+            // the same Korean word (구류 = 拘留 and 句留) — the prompt
+            // would then have two correct answers.
+            (koToHjs[x.ko]=koToHjs[x.ko]||[]).push(x.hj);
+          }
         });
       });
+      var sameWord=koToHjs[w.ko]||[];
       var opts=[{label:w.hj,correct:true}];
       shuffle(all);
       for(var i=0;i<all.length && opts.length<4;i++){
-        if(all[i]!==w.hj) opts.push({label:all[i],correct:false});
+        if(all[i]!==w.hj && sameWord.indexOf(all[i])<0) opts.push({label:all[i],correct:false});
       }
       shuffle(opts);
       setPrompt('', w.ko, 'Which hanja spelling?', true);
