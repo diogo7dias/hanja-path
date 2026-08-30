@@ -8,7 +8,8 @@ Hanja Path is a minimal study companion for Korean learners who want to understa
 
 - **1,795 education hanja** organized into Beginner, Intermediate, and Advanced levels
 - **Structured lessons** — characters grouped into lessons of 10 by pictographic complexity
-- **Study pages** — deep-dive for every hanja: reading, meaning, memory tip, 3 example words with breakdowns, and a Korean sentence
+- **Study pages** — deep-dive for every hanja: reading, meaning, memory tip, 3 example words with breakdowns, a Korean sentence, and a stroke-order viewer
+- **Stroke order** — animated per-stroke writing guide on every study page (ordered stroke data loaded at runtime from the MIT-licensed hanzi-writer-data CDN; graceful fallback when offline)
 - **Interactive quiz** — 4 quiz modes: glyph→reading, glyph→meaning, homophone disambiguation (same reading, pick the right character), and word→hanja spelling; readings in the reading quiz are guaranteed distinct
 - **Spaced repetition** — review sessions schedule characters by Leitner intervals (1/3/7/14/30 days) in your browser; correct answers advance the box, mistakes reset it; a daily streak tracks consistency
 - **Korean audio** — play buttons read each character, example word, and sentence aloud using the browser's Korean speech engine (zero dependencies)
@@ -33,7 +34,7 @@ Hanja Path is a minimal study companion for Korean learners who want to understa
 | `index.html` | Home page with method overview and level picker |
 | `lessons.html` | Lesson picker with progress bar per level |
 | `lesson.html` | Single lesson view with 10 study cards |
-| `study.html` | Deep-dive page for any individual hanja |
+| `study.html` | Deep-dive page for any individual hanja (with ✍️ stroke-order animation) |
 | `quiz.html` | Interactive quiz — 4 modes, spaced-repetition reviews (`?srs=1`), streak |
 | `reading.html` | Reading hubs — every character grouped by Korean reading (homophones) |
 | `level.html` | Flat grid browser with search (original layout) |
@@ -43,6 +44,7 @@ Hanja Path is a minimal study companion for Korean learners who want to understa
 
 - Static HTML/CSS/JavaScript — no build step, no framework
 - `hanja-data.js` — generated dataset of all 1,795 education hanja with readings, meanings, tips, example words, and English glosses
+- `stroke.js` — dependency-free stroke-order viewer (loads ordered stroke data from the hanzi-writer-data CDN at runtime)
 - `localStorage` for progress tracking (no account needed)
 - Hosted on GitHub Pages
 

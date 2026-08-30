@@ -77,6 +77,7 @@ a{color:var(--dim)}
 </style>
 <script src="hanja-data.js"></script>
 <script src="audio.js"></script>
+<script src="stroke.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -109,7 +110,7 @@ a{color:var(--dim)}
         <div class="related-chars" id="readingChars"></div>
       </div>
       <div class="meta" id="meta"><a href="level.html?l=0">Back to level →</a></div>
-      <div class="btns" style="margin-top:14px"><button class="btn" id="masterBtn" style="border:1px solid var(--line);color:var(--dim);padding:6px 14px;font-size:10px;letter-spacing:.16em;cursor:pointer;text-transform:uppercase;background:transparent;font-family:inherit">Mark mastered</button></div>
+      <div class="btns" style="margin-top:14px"><button class="btn" id="masterBtn" style="border:1px solid var(--line);color:var(--dim);padding:6px 14px;font-size:10px;letter-spacing:.16em;cursor:pointer;text-transform:uppercase;background:transparent;font-family:inherit">Mark mastered</button><button class="btn" id="strokeBtn" style="border:1px solid var(--line);color:var(--dim);padding:6px 14px;font-size:10px;letter-spacing:.16em;cursor:pointer;text-transform:uppercase;background:transparent;font-family:inherit;margin-left:10px">✍️ Stroke order</button></div>
     </div>
   </div>
 
@@ -252,6 +253,11 @@ a{color:var(--dim)}
       }
     });
   }
+
+  // Stroke order
+  document.getElementById('strokeBtn').addEventListener('click',function(){
+    if(window.openStrokeOrder){ window.openStrokeOrder(h.c); }
+  });
 
   // Progress tracking
   var btn=document.getElementById('masterBtn');
