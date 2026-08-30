@@ -254,7 +254,7 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
     else if(mode==='homophone'){
       var br={};
       pool.forEach(function(h){ (br[h.r]=br[h.r]||[]).push(h); });
-      var rs=Object.keys(br).filter(function(r){return br[r].length>=4;});
+      var rs=Object.keys(br).filter(function(r){return br[r].length>=3;});
       if(rs.length){
         var r=rs[Math.floor(Math.random()*rs.length)];
         var opts=br[r].slice(); shuffle(opts);
