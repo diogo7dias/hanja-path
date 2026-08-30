@@ -163,7 +163,7 @@ a{color:var(--dim)}
   } else {
     tipko.textContent=h.h+' ('+h.r+') 소리를 한국어 단어에서 찾아 기억하세요.';
   }
-  document.getElementById('tipgloss').textContent = h.eng? ('HUUN · ' + h.h + '  ·  read '+h.r) : ('read '+h.r);
+  document.getElementById('tipgloss').textContent = h.eng ? (h.h + '  ·  read ' + h.r) : ('read ' + h.r);
 
   // Show only trustworthy examples; never pad the lesson with invented words.
   var cols=document.getElementById('cols');
