@@ -114,6 +114,7 @@ RADICAL_NAMES = {
 # Hand translations for mined words whose Kengdic gloss is empty and which
 # are absent from ko_english.json / english_gloss.py. Keys are the Korean word.
 EN_GLOSS_FILL = {
+ "관식": "a headdress, an ornamental headpiece",
  "반계곡경": "a winding stream-side path",
  "합곡": "the joined valleys (LI 4 acupuncture point, web between thumb and index)",
  "강군": "a strong army",
@@ -544,15 +545,22 @@ for i, e in enumerate(ordered):
                     ko, hj, gl = item
                 if not hj or not ko:
                     continue
-                if hj in seen:
+                # Dedup keys use the *cleaned* values so that punctuation
+                # variants ("안녕!" vs "안녕", "安寧!" vs "安寧") also collide.
+                hj_clean = ''.join(cc for cc in hj if "\u4e00" <= cc <= "\u9fff")
+                ko_clean = ''.join(cc for cc in ko if "\uac00" <= cc <= "\ud7af")
+                if not hj_clean or not ko_clean:
                     continue
-                hj = ''.join(cc for cc in hj if "\u4e00" <= cc <= "\u9fff")
-                if not all(cc in _char for cc in hj):  # skip words whose helper hanja is foreign to the set
+                if hj_clean in seen or ko_clean in seen:
                     continue
-                word = {"ko": ko, "hj": hj, "gl": gl, "b": breakdown(hj)}
+                if not all(cc in _char for cc in hj_clean):  # skip words whose helper hanja is foreign to the set
+                    continue
+                hj = hj_clean
+                word = {"ko": ko_clean, "hj": hj, "gl": gl, "b": breakdown(hj)}
                 if not useful_word(word):
                     continue
                 seen.add(hj)
+                seen.add(ko_clean)  # dedup by Korean word too (same ko, different hanja spelling)
                 cand.append(word)
                 if len(cand) >= 6:
                     break
