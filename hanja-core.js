@@ -135,6 +135,11 @@
     var store = (ports && ports.store) || nullStore;
     var data = (ports && ports.data) || { levels: [], hanja: [] };
     var clock = (ports && ports.clock) || systemClock;
+    var randPort = (ports && ports.rand) || {
+      float: function () {
+        return Math.random();
+      },
+    };
 
     function progress() {
       return readObject(store, PROGRESS_KEY);
@@ -373,6 +378,298 @@
       return normalizeList(value).length ? {} : value;
     }
 
+    /* ---- quiz ---- */
+
+    function float() {
+      var value = randPort.float();
+      return typeof value === "number" && value >= 0 && value < 1 ? value : 0;
+    }
+
+    function shuffle(items) {
+      for (var i = items.length - 1; i > 0; i--) {
+        var j = Math.floor(float() * (i + 1));
+        var swap = items[i];
+        items[i] = items[j];
+        items[j] = swap;
+      }
+      return items;
+    }
+
+    function fewestRandomly(items, keyOf, exclude) {
+      shuffle(items);
+      var seen = {};
+      if (exclude !== undefined && exclude !== null) {
+        seen[exclude] = true; /* a wrong answer may never also be right */
+      }
+      var chosen = [];
+      for (var i = 0; i < items.length && chosen.length < 3; i++) {
+        var key = keyOf(items[i]);
+        if (!key || !Object.prototype.hasOwnProperty.call(seen, key)) {
+          seen[key] = true;
+          chosen.push(items[i]);
+        }
+      }
+      return chosen;
+    }
+
+    function poolFor(options) {
+      var level = options && options.lv !== undefined && options.lv !== null ? options.lv : -1;
+      return list({ lv: level });
+    }
+
+    /* review asks what is due; random asks what the randomness picks */
+    function session(options) {
+      var config = options || {};
+      var pool = poolFor(config);
+      var wanted = config.n || 0;
+
+      if (!config.srs) {
+        return shuffle(pool).slice(0, wanted > 0 ? wanted : 20);
+      }
+
+      var scheduleState = schedule();
+      var day = clock.today();
+      var due = [];
+      for (var i = 0; i < pool.length; i++) {
+        if (isDue(pool[i], scheduleState, day)) {
+          due.push(pool[i]);
+        }
+      }
+      due.sort(function (a, b) {
+        var left = scheduleState[a.c];
+        var right = scheduleState[b.c];
+        return (left ? left.d : 0) - (right ? right.d : 0);
+      });
+
+      var cap = wanted > 0 ? wanted : due.length;
+      if (due.length > cap) {
+        due = due.slice(0, cap);
+      }
+      if (cap < 10) {
+        cap = 10; /* never fewer than ten, so a beginner gets a session */
+      }
+
+      var questions = due.slice();
+      if (questions.length < cap) {
+        var fresh = [];
+        var planned = {};
+        for (var s = 0; s < questions.length; s++) {
+          planned[questions[s].c] = true;
+        }
+        for (var k = 0; k < pool.length; k++) {
+          if (!scheduleState[pool[k].c]) {
+            fresh.push(pool[k]);
+          }
+        }
+        shuffle(fresh);
+        for (var m = 0; m < fresh.length && questions.length < cap; m++) {
+          if (!planned[fresh[m].c]) {
+            planned[fresh[m].c] = true;
+            questions.push(fresh[m]);
+          }
+        }
+      }
+      return questions;
+    }
+
+    function promptOf(glyph, reading, meaning) {
+      return { glyph: glyph, reading: reading, meaning: meaning };
+    }
+
+    function question(entry, mode, options) {
+      var pool = poolFor(options);
+      var config = options || {};
+
+      if (mode === "meaning") {
+        var distinctHun = [];
+        for (var i = 0; i < pool.length; i++) {
+          if (pool[i].c !== entry.c && pool[i].h !== entry.h) {
+            distinctHun.push(pool[i]);
+          }
+        }
+        var meaningChosen = fewestRandomly(distinctHun, function (h) {
+          return h.h;
+        }, entry.h);
+        var meaningOptions = [{ label: entry.h || "", sub: entry.eng || "", correct: true, char: entry }];
+        for (var j = 0; j < meaningChosen.length; j++) {
+          meaningOptions.push({
+            label: meaningChosen[j].h || "",
+            sub: meaningChosen[j].eng || "",
+            correct: false,
+            char: meaningChosen[j],
+          });
+        }
+        shuffle(meaningOptions);
+        return {
+          mode: "meaning",
+          char: entry,
+          word: null,
+          wordGlyph: false,
+          prompt: promptOf(entry.c, "", "See the hanja — what does it mean?"),
+          options: meaningOptions,
+        };
+      }
+
+      if (mode === "homophone") {
+        var buckets = group(pool, function (h) {
+          return h.r;
+        });
+        var eligible = [];
+        for (var reading in buckets) {
+          if (Object.prototype.hasOwnProperty.call(buckets, reading) && buckets[reading].length >= 3) {
+            eligible.push(reading);
+          }
+        }
+        if (eligible.length) {
+          var picked = eligible[Math.floor(float() * eligible.length)];
+          var members = shuffle(buckets[picked].slice()).slice(0, 4);
+          var target = members[0];
+          var homophoneOptions = [];
+          for (var n = 0; n < members.length; n++) {
+            homophoneOptions.push({
+              label: members[n].c,
+              sub: members[n].h || "",
+              correct: members[n].c === target.c,
+              char: members[n],
+            });
+          }
+          shuffle(homophoneOptions);
+          return {
+            mode: "homophone",
+            char: target,
+            word: null,
+            wordGlyph: false,
+            prompt: promptOf("", "read " + picked, (target.h || "") + (target.eng ? " · " + target.eng : "")),
+            options: homophoneOptions,
+          };
+        }
+        /* no reading is shared by three characters: ask the same question with
+         * characters that do not share a reading at all */
+        return glyphQuestion(entry, "homophone", pool, "read " + entry.r);
+      }
+
+      if (mode === "word") {
+        var source = entry;
+        if (!(source.words && source.words.length)) {
+          source = firstWithWords(pool) || source;
+        }
+        var word = source.words ? source.words[Math.floor(float() * source.words.length)] : null;
+        var prompt = promptOf("", word ? word.ko : "", "Which hanja spelling?");
+        if (!word) {
+          return { mode: "word", char: source, word: null, wordGlyph: true, prompt: prompt, options: [] };
+        }
+        var spellings = {};
+        var candidates = [];
+        var displayed = {};
+        for (var p = 0; p < pool.length; p++) {
+          var words = pool[p].words || [];
+          for (var w = 0; w < words.length; w++) {
+            if (!words[w].hj) {
+              continue;
+            }
+            spellings[words[w].ko] = (spellings[words[w].ko] || []).concat([words[w].hj]);
+            if (!displayed[words[w].hj]) {
+              displayed[words[w].hj] = true;
+              candidates.push(words[w]);
+            }
+          }
+        }
+        var sameWord = spellings[word.ko] || [];
+        var wordOptions = [{ label: word.hj, sub: "", correct: true, char: source, word: word }];
+        shuffle(candidates);
+        for (var c = 0; c < candidates.length && wordOptions.length < 4; c++) {
+          if (candidates[c].hj !== word.hj && sameWord.indexOf(candidates[c].hj) < 0) {
+            wordOptions.push({ label: candidates[c].hj, sub: "", correct: false, char: null, word: candidates[c] });
+          }
+        }
+        shuffle(wordOptions);
+        return {
+          mode: "word",
+          char: source,
+          word: word,
+          wordGlyph: true,
+          prompt: prompt,
+          options: wordOptions,
+        };
+      }
+
+      /* reading, and the default */
+      return readingQuestion(entry, pool);
+    }
+
+    /* choices are readings; the label is the reading, never the glyph */
+    function readingQuestion(entry, pool) {
+      var others = [];
+      for (var i = 0; i < pool.length; i++) {
+        if (pool[i].c !== entry.c) {
+          others.push(pool[i]);
+        }
+      }
+      var chosen = fewestRandomly(others, function (h) {
+        return h.r;
+      }, entry.r);
+      var options = [{ label: entry.r, sub: "", correct: true, char: entry }];
+      for (var j = 0; j < chosen.length; j++) {
+        options.push({ label: chosen[j].r, sub: "", correct: false, char: chosen[j] });
+      }
+      shuffle(options);
+      return {
+        mode: "reading",
+        char: entry,
+        word: null,
+        wordGlyph: false,
+        prompt: promptOf(entry.c, "", "See the hanja — what is its Korean reading?"),
+        options: options,
+      };
+    }
+
+    /* choices are characters; the label is the glyph */
+    function glyphQuestion(entry, mode, pool, reading) {
+      var others = [];
+      for (var i = 0; i < pool.length; i++) {
+        if (pool[i].c !== entry.c) {
+          others.push(pool[i]);
+        }
+      }
+      var chosen = [];
+      var seen = {};
+      seen[entry.r] = true; /* a wrong answer may never share the right reading */
+      shuffle(others);
+      for (var j = 0; j < others.length && chosen.length < 3; j++) {
+        if (!seen[others[j].r]) {
+          seen[others[j].r] = true;
+          chosen.push(others[j]);
+        }
+      }
+      var options = [{ label: entry.c, sub: entry.h || "", correct: true, char: entry }];
+      for (var k = 0; k < chosen.length; k++) {
+        options.push({ label: chosen[k].c, sub: chosen[k].h || "", correct: false, char: chosen[k] });
+      }
+      shuffle(options);
+      return {
+        mode: mode,
+        char: entry,
+        word: null,
+        wordGlyph: false,
+        prompt: promptOf(
+          reading ? "" : entry.c,
+          reading,
+          reading ? (entry.h || "") + (entry.eng ? " · " + entry.eng : "") : "See the hanja — what is its Korean reading?"
+        ),
+        options: options,
+      };
+    }
+
+    function firstWithWords(pool) {
+      var withWords = [];
+      for (var i = 0; i < pool.length; i++) {
+        if (pool[i].words && pool[i].words.length) {
+          withWords.push(pool[i]);
+        }
+      }
+      return shuffle(withWords)[0] || null;
+    }
+
     return {
       data: data,
       chars: {
@@ -413,6 +710,10 @@
         streak: streak,
         exportProgress: exportProgress,
         importProgress: importProgress,
+      },
+      quiz: {
+        session: session,
+        question: question,
       },
     };
   }
