@@ -4,3 +4,6 @@
 # Python
 __pycache__/
 *.pyc
+
+# Published duplicate of the site (removed in issue #2)
+mockups/
