@@ -66,6 +66,71 @@
     return Object.prototype.toString.call(value) === "[object Array]" ? value : [];
   }
 
+  /* Query strings arrive as location.search ("?l=1") or as nothing at all. */
+  function toParams(search) {
+    var text = typeof search === "string" ? search : "";
+    if (text.charAt(0) === "?") {
+      text = text.slice(1);
+    }
+    var pairs = text.length ? text.split("&") : [];
+    var out = {};
+    for (var i = 0; i < pairs.length; i++) {
+      var split = pairs[i].indexOf("=");
+      var rawKey = split < 0 ? pairs[i] : pairs[i].slice(0, split);
+      var rawValue = split < 0 ? "" : pairs[i].slice(split + 1);
+      var key;
+      var value;
+      try {
+        key = decodeURIComponent(rawKey.replace(/\+/g, " "));
+        value = decodeURIComponent(rawValue.replace(/\+/g, " "));
+      } catch (e) {
+        key = rawKey;
+        value = rawValue;
+      }
+      if (key && !(key in out)) {
+        out[key] = value;
+      }
+    }
+    return out;
+  }
+
+  function group(entries, keyOf) {
+    var buckets = {};
+    var order = [];
+    for (var i = 0; i < entries.length; i++) {
+      var key = String(keyOf(entries[i], i));
+      if (!Object.prototype.hasOwnProperty.call(buckets, key)) {
+        buckets[key] = [];
+        order.push(key);
+      }
+      buckets[key].push(entries[i]);
+    }
+    var ordered = {};
+    for (var k = 0; k < order.length; k++) {
+      ordered[order[k]] = buckets[order[k]];
+    }
+    return ordered;
+  }
+
+  function readingGroups(entries) {
+    var buckets = group(entries, function (entry) {
+      return entry.r;
+    });
+    var groups = [];
+    for (var key in buckets) {
+      if (Object.prototype.hasOwnProperty.call(buckets, key)) {
+        groups.push({ r: key, chars: buckets[key], n: buckets[key].length });
+      }
+    }
+    groups.sort(function (a, b) {
+      if (b.n !== a.n) {
+        return b.n - a.n;
+      }
+      return a.r < b.r ? -1 : a.r > b.r ? 1 : 0;
+    });
+    return groups;
+  }
+
   function create(ports) {
     var store = (ports && ports.store) || nullStore;
     var data = (ports && ports.data) || { levels: [], hanja: [] };
@@ -95,6 +160,92 @@
         }
       }
       return out;
+    }
+
+    /* how level.html searches a character today */
+    function matchesQuery(entry, query) {
+      if (!query) {
+        return false;
+      }
+      var needle = query.toLowerCase();
+      if ((entry.c || "").indexOf(query) >= 0 || (entry.r || "").indexOf(query) >= 0 || (entry.h || "").indexOf(query) >= 0) {
+        return true;
+      }
+      if ((entry.eng || "").toLowerCase().indexOf(needle) >= 0) {
+        return true;
+      }
+      var words = entry.words || [];
+      for (var i = 0; i < words.length; i++) {
+        if ((words[i].ko || "").indexOf(query) >= 0 || (words[i].hj || "").indexOf(query) >= 0) {
+          return true;
+        }
+        if ((words[i].gl || "").toLowerCase().indexOf(needle) >= 0) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function matchesFilter(entry, filter) {
+      if (!filter) {
+        return true;
+      }
+      if (filter.lv !== undefined && filter.lv !== null && filter.lv >= 0 && entry.lv !== filter.lv) {
+        return false;
+      }
+      if (filter.lesson !== undefined && filter.lesson !== null && entry.lesson !== filter.lesson) {
+        return false;
+      }
+      if (filter.reading !== undefined && filter.reading !== null && entry.r !== filter.reading) {
+        return false;
+      }
+      if (filter.char !== undefined && filter.char !== null && entry.c !== filter.char) {
+        return false;
+      }
+      if (filter.query !== undefined && filter.query !== null && !matchesQuery(entry, filter.query)) {
+        return false;
+      }
+      return true;
+    }
+
+    var charIndex = null;
+
+    function index() {
+      if (!charIndex) {
+        charIndex = {};
+        var pool = data.hanja || [];
+        for (var i = 0; i < pool.length; i++) {
+          charIndex[pool[i].c] = pool[i];
+        }
+      }
+      return charIndex;
+    }
+
+    function list(filter) {
+      var rest = filter || {};
+      if (
+        rest.lv === undefined && rest.lesson === undefined && rest.reading === undefined &&
+        rest.char === undefined && rest.query === undefined
+      ) {
+        return (data.hanja || []).slice();
+      }
+      var out = [];
+      var pool = data.hanja || [];
+      for (var i = 0; i < pool.length; i++) {
+        if (matchesFilter(pool[i], rest)) {
+          out.push(pool[i]);
+        }
+      }
+      return out;
+    }
+
+    function byChar(character) {
+      var found = index()[character];
+      return found === undefined ? null : found;
+    }
+
+    function readings(entries) {
+      return readingGroups(entries === undefined ? list({}) : entries);
     }
 
     function isMastered(character) {
@@ -224,6 +375,32 @@
 
     return {
       data: data,
+      chars: {
+        list: list,
+        byChar: byChar,
+        group: group,
+        readings: readings,
+        levels: function () {
+          return (data.levels || []).slice();
+        },
+      },
+      url: {
+        int: function (search, name, fallback) {
+          var raw = toParams(search)[name];
+          if (raw === undefined || raw === "") {
+            return fallback;
+          }
+          var parsed = parseInt(raw, 10);
+          return isNaN(parsed) ? fallback : parsed;
+        },
+        text: function (search, name, fallback) {
+          var raw = toParams(search)[name];
+          return raw === undefined ? fallback : raw;
+        },
+        flag: function (search, name) {
+          return toParams(search)[name] === "1";
+        },
+      },
       learn: {
         isMastered: isMastered,
         toggleMastered: toggleMastered,
