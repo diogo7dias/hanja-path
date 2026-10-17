@@ -74,6 +74,7 @@ test("the randomness stays inside the unit interval", () => {
 test("stroke data is fetched once per character", async () => {
   let calls = 0;
   const ports = HanjaAdapters.create({
+    baseUrl: "strokes/",
     fetch(url) {
       calls += 1;
       assert.equal(url, "strokes/%E5%AE%B6.json");

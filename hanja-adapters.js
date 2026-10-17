@@ -19,7 +19,8 @@
 
   var DAY_MS = 86400000;
   var STROKE_TIMEOUT_MS = 4000;
-  var STROKE_BASE = "strokes/";
+  /* same source as stroke.js: the hanzi-writer stroke dataset on jsdelivr */
+  var STROKE_BASE = "https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0.1/";
 
   function isArray(value) {
     return Object.prototype.toString.call(value) === "[object Array]";
