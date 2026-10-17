@@ -48,6 +48,20 @@ Hanja Path is a minimal study companion for Korean learners who want to understa
 - `localStorage` for progress tracking (no account needed)
 - Hosted on GitHub Pages
 
+## Regenerating the dataset
+
+`hanja-data.js` at the repo root is the only copy the site loads, and `tools/build.py` is its only writer (no copy step):
+
+```sh
+python3 tools/build.py            # parse -> build -> validate -> write hanja-data.js (and tools/educ.json)
+python3 tools/validate_hanja.py   # check the committed file against the contract; exit 1 on drift
+python3 -m unittest discover -s tools/tests   # the contract and layout tests
+```
+
+`tools/validate_hanja.py` pins the shape the pages rely on: totals and level split, level/lesson/slot numbering, the known gaps (16 characters without radical data, 23 without example words, 22 with a curated tip and sentence), and the two words that use a hanja outside the education set. A build that breaks any of that fails and changes nothing.
+
+Everything under `tools/` that the build reads (`wikitext.json`, `words.json`, `ko_english.json`, `radicals.json`) is a frozen committed input. `words.json` cannot be rebuilt from a clean checkout, because `tools/build_words.py` needs corpora that are not in the repo.
+
 ## Data Source
 
 The hanja dataset is parsed from the official Korean education hanja list (교육용기초한자 1800자) via the ko.wiktionary appendix. Example words are sourced from the Kengdic Korean-English dictionary, the KRV Bible corpus, and curated vocabulary lists.

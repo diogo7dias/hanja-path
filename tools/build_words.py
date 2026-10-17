@@ -1,19 +1,25 @@
-"""Build mockups/_src/words.json — a per-hanja word bank.
+"""Build tools/words.json — a per-hanja word bank.
 
-Sources (real words, all containing hanja whose every character is in the
-education set):
-  - Kengdic (surface / hanja / English gloss)  -> everyday vocab + English gloss
-  - h2h KRV Bible corpus (hanja compounds)      -> covers chars Kengdic misses
-Walks both corpora, indexes each character, and writes an ordered candidate
-word list per education hanja. gen.py consumes this to render the 3 example
-columns on every study page.
+Mined from corpora that are NOT in this repo, so the output cannot be rebuilt
+from a clean checkout and is committed as a frozen input for build.py:
+  - /tmp/kengdic.tsv                everyday vocabulary plus English glosses
+  - /tmp/bible.tsv                  h2h KRV hanja compounds
+  - /tmp/es_*.csv                   Korean homophone / synonym / antonym lists
+
+The education character set arrives through tools/educ.json, written by the
+generator, so this script never reads the served site file.
 """
 import csv, json, re, collections
+from pathlib import Path
 
-ED = "/Users/diogomoreira/Downloads/freebuff/hanja-practice/mockups/hanja-data.js"
+import education_set
+
+HERE = Path(__file__).resolve().parent
+
 KENG = "/tmp/kengdic.tsv"
 BIBLE = "/tmp/bible.tsv"
-UNIHAN_VAR = "/tmp/var2canon.json"
+UNIHAN_VAR = HERE / "var2canon.json"  # committed copy of the variant table
+OUT = HERE / "words.json"
 
 VAR = json.load(open(UNIHAN_VAR, encoding="utf-8"))
 
@@ -23,12 +29,10 @@ def canon(s):
     if not s:
         return s
     return "".join(VAR.get(c, c) for c in s)
-OUT = "/Users/diogomoreira/Downloads/freebuff/hanja-practice/mockups/_src/words.json"
 
-# education set + reading map
-txt = open(ED, encoding="utf-8").read()
-D = json.loads(txt[txt.index("{"):txt.rindex("}") + 1])
-educ = {r["c"]: r for r in D["hanja"]}
+
+# education set + reading map, shared with the generator
+educ = education_set.load()
 
 HJ = re.compile(r"[\u4e00-\u9fff]+")
 HZ = re.compile(r"[\uac00-\ud7af]")
@@ -132,8 +136,6 @@ cov = {c: v for c, v in word_bank.items()}
 overall = sum(1 for c in educ if len(cov[c]) >= 3)
 print("education chars:", len(educ))
 print("chars with >=3 real candidate words:", overall, f"({overall/len(educ)*100:.1f}%)")
-for lvname, lo, hi in [("lv0", 0, 600), ("lv1", 600, 1200), ("lv2", 1200, 1795)]:
-    recs = [r for r in D["hanja"] if 0 <= r.get("lv", 0) and False][:0]
 short = sorted(c for c in educ if len(cov[c]) < 3)
 print("chars with <3 words:", len(short))
 print("".join(short))
