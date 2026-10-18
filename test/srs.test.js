@@ -110,3 +110,16 @@ test("importing rubbish leaves the learner's real data alone", () => {
   learn.importProgress("{not json");
   assert.equal(learn.isMastered("家"), true);
 });
+
+test("an answer outside review starts the streak without scheduling anything", () => {
+  const store = fakes.store();
+  const learn = core(store, fakes.clock(20000)).learn;
+
+  assert.deepEqual(learn.streak(), { n: 0, last: 0 });
+  learn.touchStreak();
+  assert.deepEqual(learn.streak(), { n: 1, last: 20000 });
+  assert.equal(store.raw()["hanjasrs"], undefined, "the schedule is left alone");
+
+  learn.touchStreak();
+  assert.deepEqual(learn.streak(), { n: 1, last: 20000 }, "the same day counts once");
+});

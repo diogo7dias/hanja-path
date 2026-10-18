@@ -703,6 +703,7 @@
         toggleMastered: toggleMastered,
         masteredCount: masteredCount,
         record: record,
+        touchStreak: bumpStreak,
         dueCount: function (filter) {
           return dueChars(filter).length;
         },
