@@ -196,12 +196,13 @@ nav a.on{color:#fff}
   <footer class="foot"><span>한자 NOTE</span><span>A minimal companion for your Korean journey · 2026 · <a href="https://ko-fi.com/d7d7m" target="_blank" rel="noopener">Support on Ko-fi ↗</a></span></footer>
 </div>
 <script src="hanja-data.js"></script>
+<script src="hanja-core.js"></script>
+<script src="hanja-adapters.js"></script>
 <script>
 (function(){
-  var D=window.HANJA;
-  var sched=JSON.parse(localStorage.getItem('hanjasrs')||'{}');
-  var t=Math.floor(Date.now()/86400000), dueN=0;
-  D.hanja.forEach(function(h){ var r=sched[h.c]; if(!r||r.d<=t) dueN++; });
+  var ports=HanjaAdapters.browser();
+  var core=HanjaCore.create({data:window.HANJA, store:ports.store, clock:ports.clock});
+  var dueN=core.learn.dueCount();
   if(dueN>0){
     document.getElementById('dueCta').style.display='';
     document.getElementById('dueCtaLink').textContent=dueN+' review'+(dueN===1?'':'s')+' due today →';
