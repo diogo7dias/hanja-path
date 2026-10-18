@@ -44,9 +44,30 @@ Hanja Path is a minimal study companion for Korean learners who want to understa
 
 - Static HTML/CSS/JavaScript — no build step, no framework
 - `hanja-data.js` — generated dataset of all 1,795 education hanja with readings, meanings, tips, example words, and English glosses
+- `hanja-core.js` — the study core: learner state, spaced repetition, dataset queries, quiz rules and query-string parsing, with storage, clock, randomness, stroke data and speech injected as ports
+- `hanja-adapters.js` — the browser side of those ports (localStorage with guards, Date, Math.random, the stroke CDN, speechSynthesis)
 - `stroke.js` — dependency-free stroke-order viewer (loads ordered stroke data from the hanzi-writer-data CDN at runtime)
 - `localStorage` for progress tracking (no account needed)
 - Hosted on GitHub Pages
+
+Every page loads `hanja-data.js`, `hanja-core.js` and `hanja-adapters.js`, then creates one core:
+
+```js
+var ports = HanjaAdapters.browser();
+var core = HanjaCore.create({ data: window.HANJA, store: ports.store, clock: ports.clock, rand: ports.rand, speech: ports.speech });
+core.learn.isMastered('家');        // hanjaprogress, guarded
+core.learn.record('家', true);      // hanjasrs + hanjastreak, Leitner boxes 0..5
+core.quiz.session({ lv: -1, srs: true });
+core.quiz.question(core.chars.byChar('家'), 'reading');
+```
+
+The module is plain ES5 with no dependencies, so it runs from a `<script>` tag in the browser and from `require` in Node:
+
+```sh
+node --test test/     # 49 tests, no npm install
+```
+
+`test/fakes.js` supplies an in-memory store, a settable clock, scripted randomness and a small dataset, so the rules (interval steps, streak reset, distinct readings, distinct hun, the homophone minimum, the same-word distractor rule) are tested without a browser.
 
 ## Regenerating the dataset
 
