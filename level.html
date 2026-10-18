@@ -54,6 +54,8 @@ nav a.on{color:#fff}
 .foot{margin-top:60px;border-top:1px solid var(--line);padding-top:18px;font-size:11px;letter-spacing:.2em;color:var(--faint);display:flex;justify-content:space-between}
 </style>
 <script src="hanja-data.js"></script>
+<script src="hanja-core.js"></script>
+<script src="hanja-adapters.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -88,20 +90,22 @@ nav a.on{color:#fff}
 </div>
 <script>
 (function(){
-  var qs=new URLSearchParams(location.search);
-  var lv=parseInt(qs.get('l')); if(isNaN(lv)) lv=0;
+  var ports=HanjaAdapters.browser();
+  var core=HanjaCore.create({data:window.HANJA, store:ports.store});
+  var chars=core.chars, url=core.url;
+
+  var lv=url.int(location.search,'l',0);
   var PAGE=24, page=0, q='';
-  var D=window.HANJA;
-  var meta=D.levels[lv];
+  var meta=chars.levels()[lv];
   var LEVELMETA=[['초급','Beginner','山','The world in pictures'],['중급','Intermediate','心','Words &amp; ideas'],['고급','Advanced','德','Virtue &amp; abstraction']];
   var lm=LEVELMETA[lv];
   function el(id){return document.getElementById(id)}
   el('title').innerHTML=lm[2]+' '+lm[0]+'<br><span class="hangul"><small>'+lm[1]+' · '+lm[3]+'</small></span>';
   el('vol').textContent='LEVEL '+(lv+1)+' · '+meta.ko.toUpperCase();
-  el('footcount').textContent=meta.ko+' · '+meta.n+' hanja of '+D.total;
+  el('footcount').textContent=meta.ko+' · '+meta.n+' hanja of '+core.data.total;
   // pills row
   var pills=el('pills');
-  D.levels.forEach(function(m,i){
+  chars.levels().forEach(function(m,i){
     var a=document.createElement('a');
     a.className='pill'+(i===lv?' on':'');
     a.href='level.html?l='+i;
@@ -109,19 +113,9 @@ nav a.on{color:#fff}
     pills.appendChild(a);
   });
 
-  function matches(h,s){
-    if(!s) return true;
-    s=s.toLowerCase();
-    if((h.c.indexOf(s)>=0)||(h.r.indexOf(s)>=0)||(h.h.indexOf(s)>=0)||((h.eng||'')+' '+(h.h)).toLowerCase().indexOf(s)>=0) return true;
-    // match the Korean words this character appears in (e.g. 가족 -> 家/家族)
-    var ws=h.words||[];
-    for(var i=0;i<ws.length;i++){
-      if(((ws[i].ko||'').toLowerCase().indexOf(s)>=0)||((ws[i].hj||'').indexOf(s)>=0)) return true;
-    }
-    return false;
-  }
+  // core.chars.list carries the search predicate
   function list(){
-    return D.hanja.filter(function(h){ return h.lv===lv && matches(h,q); });
+    return q ? chars.list({lv:lv, query:q}) : chars.list({lv:lv});
   }
   function render(){
     var arr=list();

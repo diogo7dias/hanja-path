@@ -53,6 +53,8 @@ nav a.on{color:#fff}
 .foot{margin-top:60px;border-top:1px solid var(--line);padding-top:18px;font-size:11px;letter-spacing:.2em;color:var(--faint);display:flex;justify-content:space-between}
 </style>
 <script src="hanja-data.js"></script>
+<script src="hanja-core.js"></script>
+<script src="hanja-adapters.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -81,20 +83,20 @@ nav a.on{color:#fff}
 </div>
 <script>
 (function(){
-  var D=window.HANJA;
-  var qs=new URLSearchParams(location.search);
-  var want=qs.get('r')||'가';
+  var ports=HanjaAdapters.browser();
+  var core=HanjaCore.create({data:window.HANJA, store:ports.store});
+  var charsApi=core.chars, url=core.url;
+
+  var want=url.text(location.search,'r','가');
   function el(id){return document.getElementById(id)}
 
   // Group every character by its Korean reading
+  var groups=charsApi.readings();
   var byReading={};
-  D.hanja.forEach(function(h){ (byReading[h.r]=byReading[h.r]||[]).push(h); });
-  var readings=Object.keys(byReading).sort(function(a,b){
-    var d=byReading[b].length-byReading[a].length;
-    return d!==0?d:a.localeCompare(b,'ko');
-  });
+  groups.forEach(function(g){ byReading[g.r]=g.chars; });
+  var readings=groups.map(function(g){ return g.r; });
   var cur=byReading[want]?want:readings[0];
-  var chars=byReading[cur].slice().sort(function(a,b){ return a.lv!==b.lv ? a.lv-b.lv : a.idx-b.idx; });
+  var chars=charsApi.list({reading:cur});
 
   el('title').innerHTML='<span class="big-r">'+cur+'</span><span class="hangul"><small>READINGS · SAME SOUND, DIFFERENT CHARACTERS</small></span>';
   el('curR').textContent=cur;
