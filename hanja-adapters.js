@@ -169,6 +169,10 @@
         },
       },
       speech: {
+        /* a page can hide its speaker buttons when this is false */
+        available: function () {
+          return !!synth && !!Utterance;
+        },
         speak: function (text, opts) {
           var value = String(text === undefined || text === null ? "" : text);
           if (!synth || !value || !Utterance) {

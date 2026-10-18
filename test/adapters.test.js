@@ -130,8 +130,18 @@ test("speech speaks Korean and picks a Korean voice when one exists", () => {
   assert.equal(spoken[0].voice.name, "Yuna");
 });
 
-test("speech stays silent when the browser has none, and on empty text", () => {
-  const silent = HanjaAdapters.create({});
+test("speech reports whether this browser can speak at all", () => {
+  assert.equal(HanjaAdapters.create({}).speech.available(), false, "no speechSynthesis in Node");
+  const ready = HanjaAdapters.create({
+    synth: { cancel() {}, speak() {}, getVoices: () => [] },
+    Utterance: function Utterance() {},
+  });
+  assert.equal(ready.speech.available(), true);
+  const halfReady = HanjaAdapters.create({ synth: { cancel() {}, speak() {}, getVoices: () => [] } });
+  assert.equal(halfReady.speech.available(), false, "speechSynthesis without the utterance type is useless");
+});
+
+test("speech stays silent when the browser has none, and on empty text", () => {  const silent = HanjaAdapters.create({});
   assert.doesNotThrow(() => silent.speech.speak("家"));
   assert.doesNotThrow(() => silent.speech.speak(""));
 
