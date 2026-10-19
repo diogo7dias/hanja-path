@@ -47,6 +47,8 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 @media(max-width:720px){.home-title{font-size:36px}.grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}}
 </style>
 <script src="hanja-data.js"></script>
+<script src="hanja-core.js"></script>
+<script src="hanja-adapters.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -75,10 +77,12 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 </div>
 <script>
 (function(){
-  var qs=new URLSearchParams(location.search);
-  var lv=parseInt(qs.get('l')); if(isNaN(lv)) lv=0;
-  var D=window.HANJA;
-  var meta=D.levels[lv];
+  var ports=HanjaAdapters.browser();
+  var core=HanjaCore.create({data:window.HANJA, store:ports.store, clock:ports.clock});
+  var learn=core.learn, chars=core.chars;
+
+  var lv=core.url.int(location.search,'l',0);
+  var meta=chars.levels()[lv];
   var LEVELMETA=[['초급','Beginner','山','The world in pictures'],['중급','Intermediate','心','Words & ideas'],['고급','Advanced','德','Virtue & abstraction']];
   var lm=LEVELMETA[lv];
   function el(id){return document.getElementById(id)}
@@ -88,7 +92,7 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 
   // pills
   var pills=el('pills');
-  D.levels.forEach(function(m,i){
+  chars.levels().forEach(function(m,i){
     var a=document.createElement('a');
     a.className='pill'+(i===lv?' on':'');
     a.href='lessons.html?l='+i;
@@ -97,27 +101,18 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
   });
 
   // Group characters by lesson
-  var lvChars=D.hanja.filter(function(h){return h.lv===lv;});
-  var lessons={};
-  lvChars.forEach(function(h){
-    var li=h.lesson||0;
-    if(!lessons[li]) lessons[li]=[];
-    lessons[li].push(h);
-  });
-  var lessonKeys=Object.keys(lessons).map(Number).sort(function(a,b){return a-b;});
+  var lvChars=chars.list({lv:lv});
+  var lessons=chars.group(lvChars,function(h){return h.lesson||0;});
+  var lessonKeys=Object.keys(lessons).sort(function(a,b){return a-b;});
 
-  // Progress from localStorage
-  var progress=JSON.parse(localStorage.getItem('hanjaprogress')||'{}');
-  var mastered=0, total=lvChars.length;
-  lvChars.forEach(function(h){if(progress[h.c]==='mastered') mastered++;});
+  // Progress
+  var mastered=learn.masteredCount(lvChars), total=lvChars.length;
   var pct=Math.round(mastered/total*100);
   el('progressFill').style.width=pct+'%';
   el('progressText').textContent=mastered+' / '+total+' characters mastered ('+pct+'%)';
 
   // Due reviews badge (spaced repetition, all levels)
-  var sched=JSON.parse(localStorage.getItem('hanjasrs')||'{}');
-  var t=Math.floor(Date.now()/86400000), dueN=0;
-  D.hanja.forEach(function(h){ var r=sched[h.c]; if(!r||r.d<=t) dueN++; });
+  var dueN=learn.dueCount();
   if(dueN>0){
     el('dueLine').style.display='';
     el('dueLine').innerHTML='<a href="quiz.html?srs=1">'+dueN+' review'+(dueN===1?'':'s')+' due today →</a>';
@@ -126,17 +121,17 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
   // Render lessons
   var grid=el('grid');
   lessonKeys.forEach(function(li){
-    var chars=lessons[li];
-    var done=chars.every(function(h){return progress[h.c]==='mastered';});
-    var doneCount=chars.filter(function(h){return progress[h.c]==='mastered';}).length;
+    var chars_=lessons[li];
+    var doneCount=learn.masteredCount(chars_);
+    var done=doneCount===chars_.length;
     var a=document.createElement('a');
     a.className='lesson';
     a.href='lesson.html?l='+lv+'&lesson='+li;
-    var charStr=chars.slice(0,5).map(function(h){return h.c;}).join(' ');
+    var charStr=chars_.slice(0,5).map(function(h){return h.c;}).join(' ');
     a.innerHTML='<div class="lnum">LESSON '+(li+1)+'</div>'+
       '<div class="chars">'+charStr+'</div>'+
-      '<div class="count">'+chars.length+' characters</div>'+
-      '<div class="prog"><div class="fill" style="width:'+(doneCount/chars.length*100)+'%"></div></div>'+
+      '<div class="count">'+chars_.length+' characters</div>'+
+      '<div class="prog"><div class="fill" style="width:'+(doneCount/chars_.length*100)+'%"></div></div>'+
       (done?'<div class="check">✓</div>':'');
     grid.appendChild(a);
   });

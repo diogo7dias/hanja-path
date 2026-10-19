@@ -55,7 +55,8 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 @media(max-width:720px){.hero .glyph{font-size:120px}.choices{grid-template-columns:1fr}}
 </style>
 <script src="hanja-data.js"></script>
-<script src="audio.js"></script>
+<script src="hanja-core.js"></script>
+<script src="hanja-adapters.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -123,191 +124,70 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 </div>
 <script>
 (function(){
-  var D=window.HANJA;
-  var qs=new URLSearchParams(location.search);
-  var lv=parseInt(qs.get('l')); if(isNaN(lv)) lv=-1; // -1 = all levels
-  var nParam=parseInt(qs.get('n')); if(isNaN(nParam)) nParam=0;
-  var srsParam=qs.get('srs')==='1';
+  // learner state, spaced repetition, session and question rules all live in
+  // hanja-core.js; this page only renders and listens.
+  var ports=HanjaAdapters.browser();
+  var core=HanjaCore.create({data:window.HANJA, store:ports.store, clock:ports.clock, rand:ports.rand, strokes:ports.strokes, speech:ports.speech});
+  var learn=core.learn, quiz=core.quiz, url=core.url;
+
+  var lv=url.int(location.search,'l',-1); // -1 = all levels
+  var nParam=url.int(location.search,'n',0);
+  var srsParam=url.flag(location.search,'srs');
 
   function el(id){return document.getElementById(id)}
-  function shuffle(arr){
-    for(var i=arr.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=arr[i];arr[i]=arr[j];arr[j]=t;}
-    return arr;
-  }
-
-  // ---- spaced repetition (Leitner-style) ----
-  var SRS_KEY='hanjasrs', STREAK_KEY='hanjastreak', INTERVALS=[0,1,3,7,14,30];
-  function today(){ return Math.floor(Date.now()/86400000); }
-  function loadSRS(){ try{return JSON.parse(localStorage.getItem(SRS_KEY)||'{}');}catch(e){return {};} }
-  function saveSRS(s){ try{localStorage.setItem(SRS_KEY,JSON.stringify(s));}catch(e){} }
-  function loadStreak(){ try{return JSON.parse(localStorage.getItem(STREAK_KEY)||'{}');}catch(e){return {};} }
-  function saveStreak(s){ try{localStorage.setItem(STREAK_KEY,JSON.stringify(s));}catch(e){} }
-  function dueCount(){
-    var sched=loadSRS(), t=today(), n=0;
-    D.hanja.forEach(function(h){ var r=sched[h.c]; if(!r||r.d<=t) n++; });
-    return n;
-  }
-  function renderStreak(){
-    var s=loadStreak();
-    var d=el('streak');
-    if(s.n>1){ d.style.display=''; d.textContent='🔥 '+s.n+'-day streak'; }
-    else d.style.display='none';
-  }
-  function bumpStreak(){
-    var t=today(), s=loadStreak();
-    if(s.last===t) return;
-    s.n = (s.last===t-1)?((s.n||0)+1):1;
-    s.last=t; saveStreak(s);
-    renderStreak();
-  }
-  function record(ch,correct){
-    var sched=loadSRS(), r=sched[ch]||{b:0,d:today(),l:0};
-    if(correct){ r.b=Math.min((r.b||0)+1,5); r.d=today()+INTERVALS[r.b]; }
-    else { r.b=0; r.d=today(); r.l=(r.l||0)+1; }
-    sched[ch]=r; saveSRS(sched);
-    el('sessReviewDesc').textContent=dueCount()+' due · spaced repetition';
-    bumpStreak();
-  }
 
   // ---- session setup ----
   var session = srsParam ? 'review' : 'random';
   var mode='reading';
 
-  function poolChars(){
-    return D.hanja.filter(function(h){return lv<0||h.lv===lv;});
-  }
   function buildQuestions(){
-    var pool=poolChars();
-    if(session==='review'){
-      var sched=loadSRS(), t=today();
-      var due=pool.filter(function(h){ var r=sched[h.c]; return !r||r.d<=t; });
-      due.sort(function(a,b){ var ra=sched[a.c],rb=sched[b.c]; return (ra?ra.d:0)-(rb?rb.d:0); });
-      var cap = nParam>0 ? nParam : due.length;
-      if(due.length>cap) due=due.slice(0,cap);
-      if(cap<10) cap=10; // never fewer than 10; fill with new chars
-      var questions=due.slice();
-      if(questions.length<cap){
-        var unsched=pool.filter(function(h){return !sched[h.c];});
-        shuffle(unsched);
-        questions=questions.concat(unsched.slice(0,cap-questions.length));
-      }
-      return questions;
-    }
-    shuffle(pool);
-    return pool.slice(0, nParam>0?nParam:20);
+    return quiz.session({lv:lv, n:nParam, srs:session==='review'});
   }
 
   // ---- question rendering ----
   var questions=[], qIdx=0, correct=0, answered=false, curChar=null, curWord=null;
 
-  function setPrompt(glyphHtml, reading, meaning, wordGlyph){
+  function setPrompt(prompt, wordGlyph){
     var g=el('quizGlyph');
     if(wordGlyph){ g.className='glyph word-glyph'; }
     else { g.className='glyph'; }
-    g.innerHTML=glyphHtml||'';
-    el('quizReading').textContent=reading||'';
-    el('quizMeaning').textContent=meaning||'';
+    g.innerHTML=prompt.glyph||'';
+    el('quizReading').textContent=prompt.reading||'';
+    el('quizMeaning').textContent=prompt.meaning||'';
   }
-  function renderChoices(opts, optsText){
+  // the core decides the choices; the page only decides how they look
+  function choiceHtml(qMode,o){
+    if(qMode==='meaning'){ return (o.label||'')+(o.sub?'<span class="sub">'+o.sub+'</span>':''); }
+    if(qMode==='homophone'){ return '<span style="font-family:var(--serif);font-size:34px">'+o.label+'</span><span class="sub">'+o.sub+'</span>'; }
+    if(qMode==='word'){ return '<span style="font-family:var(--serif);font-size:30px">'+o.label+'</span>'; }
+    return o.label;
+  }
+  function renderChoices(question){
     var choices=el('choices'); choices.innerHTML='';
-    opts.forEach(function(o){
+    question.options.forEach(function(o){
       var d=document.createElement('div'); d.className='choice';
-      d.innerHTML=optsText(o);
+      d.innerHTML=choiceHtml(question.mode,o);
       d.setAttribute('data-correct',o.correct?'1':'0');
       d.setAttribute('data-label',o.label);
       choices.appendChild(d);
     });
+  }
+  function renderStreak(){
+    var s=learn.streak();
+    var d=el('streak');
+    if(s.n>1){ d.style.display=''; d.textContent='🔥 '+s.n+'-day streak'; }
+    else d.style.display='none';
   }
   function renderScore(){
     el('score').innerHTML='<b>'+(qIdx+1)+' / '+questions.length+'</b> · <b>'+correct+'</b> correct';
   }
 
   function buildQuestion(q){
-    var pool=poolChars();
-    if(mode==='reading'){
-      var others=pool.filter(function(h){return h.c!==q.c;});
-      var seenR={}, chosen=[];
-      shuffle(others);
-      others.forEach(function(h){ if(chosen.length<3 && !seenR[h.r]){ seenR[h.r]=1; chosen.push(h); } });
-      var opts=[{label:q.r,correct:true}];
-      chosen.forEach(function(h){ opts.push({label:h.r,correct:false}); });
-      shuffle(opts);
-      setPrompt(q.c,'','See the hanja — what is its Korean reading?');
-      renderChoices(opts, function(o){return o.label;});
-      curChar=q; curWord=null;
-    }
-    else if(mode==='meaning'){
-      // Distractors must have a distinct Korean meaning (h.h) — chars like
-      // 집/堂/舍/室 all gloss "집", and same-meaning choices make the
-      // question unanswerable.
-      var others=pool.filter(function(h){return h.c!==q.c && h.h!==q.h;});
-      shuffle(others);
-      var opts=[{label:q,correct:true}].concat(others.slice(0,3).map(function(h){return {label:h,correct:false};}));
-      shuffle(opts);
-      setPrompt(q.c,'','See the hanja — what does it mean?');
-      renderChoices(opts, function(o){
-        var h=o.label;
-        return (h.h||'')+(h.eng?'<span class="sub">'+h.eng+'</span>':'');
-      });
-      curChar=q; curWord=null;
-    }
-    else if(mode==='homophone'){
-      var br={};
-      pool.forEach(function(h){ (br[h.r]=br[h.r]||[]).push(h); });
-      var rs=Object.keys(br).filter(function(r){return br[r].length>=3;});
-      if(rs.length){
-        var r=rs[Math.floor(Math.random()*rs.length)];
-        var opts=br[r].slice(); shuffle(opts);
-        var qq=opts[0];
-        opts=opts.slice(0,4).map(function(h){return {label:h,correct:h.c===qq.c};});
-        shuffle(opts);
-        setPrompt('','read '+r, qq.h+(qq.eng?' · '+qq.eng:''), false);
-        renderChoices(opts, function(o){return '<span style="font-family:var(--serif);font-size:34px">'+o.label.c+'</span><span class="sub">'+o.label.h+'</span>';});
-        curChar=qq; curWord=null;
-      } else {
-        // fallback: same task, distinct readings
-        var others=pool.filter(function(h){return h.c!==q.c;});
-        var seenR={}, chosen=[];
-        shuffle(others);
-        others.forEach(function(h){ if(chosen.length<3 && !seenR[h.r]){ seenR[h.r]=1; chosen.push(h); } });
-        var opts=[{label:q,correct:true}].concat(chosen.map(function(h){return {label:h,correct:false};}));
-        shuffle(opts);
-        setPrompt('','read '+q.r, q.h+(q.eng?' · '+q.eng:''), false);
-        renderChoices(opts, function(o){return '<span style="font-family:var(--serif);font-size:34px">'+o.label.c+'</span><span class="sub">'+o.label.h+'</span>';});
-        curChar=q; curWord=null;
-      }
-    }
-    else if(mode==='word'){
-      var qq=q;
-      if(!(qq.words&&qq.words.length)){
-        var withWords=pool.filter(function(h){return h.words&&h.words.length;});
-        shuffle(withWords);
-        qq=withWords[0]||qq;
-      }
-      var w=qq.words[Math.floor(Math.random()*qq.words.length)];
-      var hjSet={}, all=[], koToHjs={};
-      pool.forEach(function(h){
-        (h.words||[]).forEach(function(x){
-          if(x.hj){
-            if(!hjSet[x.hj]){ hjSet[x.hj]=1; all.push(x.hj); }
-            // a distractor is ambiguous if it is also a valid spelling of
-            // the same Korean word (구류 = 拘留 and 句留) — the prompt
-            // would then have two correct answers.
-            (koToHjs[x.ko]=koToHjs[x.ko]||[]).push(x.hj);
-          }
-        });
-      });
-      var sameWord=koToHjs[w.ko]||[];
-      var opts=[{label:w.hj,correct:true}];
-      shuffle(all);
-      for(var i=0;i<all.length && opts.length<4;i++){
-        if(all[i]!==w.hj && sameWord.indexOf(all[i])<0) opts.push({label:all[i],correct:false});
-      }
-      shuffle(opts);
-      setPrompt('', w.ko, 'Which hanja spelling?', true);
-      renderChoices(opts, function(o){return '<span style="font-family:var(--serif);font-size:30px">'+o.label+'</span>';});
-      curChar=qq; curWord=w;
-    }
+    var question=quiz.question(q, mode, {lv:lv});
+    curChar=question.char;
+    curWord=question.word;
+    setPrompt(question.prompt, question.wordGlyph);
+    renderChoices(question);
   }
 
   function render(){
@@ -320,12 +200,12 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
       el('choices').innerHTML='';
       el('feedback').innerHTML='';
       el('doneMsg').style.display='';
-      el('finalPct').textContent=Math.round(correct/questions.length*100)+'%';
+      el('finalPct').textContent=Math.round(questions.length?correct/questions.length*100:0)+'%';
       el('finalSub').textContent=correct+' correct out of '+questions.length+' questions';
       var links=el('doneLinks'); links.innerHTML='';
       var again=document.createElement('button'); again.className='btn'; again.textContent='Try Again'; again.onclick=function(){location.reload();};
       links.appendChild(again);
-      var d=dueCount();
+      var d=learn.dueCount();
       if(d>0){
         var a=document.createElement('a'); a.className='btn'; a.href='quiz.html?srs=1'; a.textContent=d+' still due →';
         links.appendChild(a);
@@ -347,15 +227,17 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
       if(c.getAttribute('data-correct')==='1') c.classList.add('correct');
       else if(c===d&&!isCorrect) c.classList.add('wrong');
     });
-    if(session==='review' && curChar) record(curChar.c,isCorrect);
-    else bumpStreak();
     if(curChar){
+      if(session==='review') learn.record(curChar.c,isCorrect);
+      else learn.touchStreak();
+      if(session==='review') el('sessReviewDesc').textContent=learn.dueCount()+' due · spaced repetition';
+      renderStreak();
       var ch=curChar;
       var fb=el('feedback');
       fb.innerHTML='<span class="fb-char">'+ch.c+'</span> · '+ch.h+' '+ch.r+
         (curWord?('<span style="opacity:.7"> — '+curWord.ko+' '+curWord.hj+'</span>'):'')+
         ' <a class="fb-study" href="study.html?han='+encodeURIComponent(ch.c)+'">study →</a>';
-      if(window.speakKo) window.speakKo(curWord?curWord.ko:(ch.h+' '+ch.r));
+      ports.speech.speak(curWord?curWord.ko:(ch.h+' '+ch.r));
     }
     renderScore();
     setTimeout(function(){qIdx++;render();},1500);
@@ -363,9 +245,9 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 
   // ---- pills ----
   var pills=el('pills');
-  [{l:-1,k:'All Levels'}].concat(D.levels).forEach(function(m){
-    var a=document.createElement('a');a.className='pill'+(m.l===lv?' on':'');
-    a.href='quiz.html?l='+m.l+(session==='review'?'&srs=1':'')+(nParam>0?'&n='+nParam:'');
+  [{id:-1,ko:'All Levels'}].concat(core.chars.levels()).forEach(function(m){
+    var a=document.createElement('a');a.className='pill'+(m.id===lv?' on':'');
+    a.href='quiz.html?l='+m.id+(session==='review'?'&srs=1':'')+(nParam>0?'&n='+nParam:'');
     a.textContent=m.ko||'All Levels';pills.appendChild(a);
   });
 
@@ -373,7 +255,7 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
   function syncSessionUI(){
     el('sessReview').classList.toggle('on',session==='review');
     el('sessionSelect').querySelector('[data-session="random"]').classList.toggle('on',session==='random');
-    el('sessReviewDesc').textContent=dueCount()+' due · spaced repetition';
+    el('sessReviewDesc').textContent=learn.dueCount()+' due · spaced repetition';
     renderStreak();
   }
   el('sessionSelect').addEventListener('click',function(e){

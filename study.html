@@ -76,7 +76,8 @@ a{color:var(--dim)}
 }
 </style>
 <script src="hanja-data.js"></script>
-<script src="audio.js"></script>
+<script src="hanja-core.js"></script>
+<script src="hanja-adapters.js"></script>
 <script src="stroke.js"></script>
 </head>
 <body>
@@ -128,18 +129,19 @@ a{color:var(--dim)}
 </div>
 <script>
 (function(){
-  var qs=new URLSearchParams(location.search);
-  var q=qs.get('han')||'山';
-  var D=window.HANJA;
-  var h=D.hanja.filter(function(x){return x.c===q;})[0];
-  if(!h){ h=D.hanja[0]; }
+  var ports=HanjaAdapters.browser();
+  var core=HanjaCore.create({data:window.HANJA, store:ports.store, clock:ports.clock, strokes:ports.strokes, speech:ports.speech});
+  var learn=core.learn, chars=core.chars, url=core.url;
+
+  var q=url.text(location.search,'han','山');
+  var h=chars.byChar(q) || core.data.hanja[0];
   var lvNames=['초급','중급','고급'];
   function set(id,t){document.getElementById(id).textContent=t;}
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 
   // pills
   var pills=document.getElementById('pills');
-  D.levels.forEach(function(m,i){
+  chars.levels().forEach(function(m,i){
     var a=document.createElement('a');
     a.className='pill'+(i===h.lv?' on':'');
     a.href='level.html?l='+i;
@@ -175,7 +177,7 @@ a{color:var(--dim)}
     var wd=ws[i];
     if(wd){
       col.innerHTML='<div class="num">'+n+'</div>'+
-        '<div class="wordhead"><span class="korean">'+esc(wd.ko)+'</span> <span class="hanja">'+esc(wd.hj)+'</span> <button class="spk" type="button" onclick="window.speakKo&&window.speakKo(\''+esc(wd.ko).replace(/'/g,"\\'")+'\')">🔊</button></div>'+
+        '<div class="wordhead"><span class="korean">'+esc(wd.ko)+'</span> <span class="hanja">'+esc(wd.hj)+'</span> <button class="spk" type="button" data-speak="'+esc(wd.ko)+'">🔊</button></div>'+
         '<div class="parts">'+esc(wd.b||'')+'</div>'+
         '<div class="gloss">'+esc(wd.gl||'')+'</div>';
     }
@@ -212,18 +214,22 @@ a{color:var(--dim)}
   set('foottag','STUDY · '+h.c+' · '+h.h+' '+h.r+' · '+(h.eng||h.h));
 
   // Audio
-  if(window.speakKo){
-    document.getElementById('spkReading').onclick=function(){window.speakKo(h.h+' '+h.r);};
+  if(ports.speech.available()){
+    document.getElementById('cols').addEventListener('click',function(e){
+      var b=e.target.closest('.spk');
+      if(b && b.getAttribute('data-speak')) ports.speech.speak(b.getAttribute('data-speak'));
+    });
+    document.getElementById('spkReading').onclick=function(){ports.speech.speak(h.h+' '+h.r);};
     var sentBtn=document.getElementById('spkSent');
     sentBtn.style.display=sent?'':'none';
-    sentBtn.onclick=function(){ if(sent) window.speakKo(sent.ko); };
+    sentBtn.onclick=function(){ if(sent) ports.speech.speak(sent.ko); };
   } else {
     var spk=document.querySelectorAll('.spk');
     for(var si=0;si<spk.length;si++) spk[si].style.display='none';
   }
 
   // Same-reading family
-  var same=D.hanja.filter(function(x){return x.r===h.r;});
+  var same=chars.list({reading:h.r});
   if(same.length>1){
     document.getElementById('readingSection').style.display='';
     var rch=document.getElementById('readingChars');
@@ -244,7 +250,7 @@ a{color:var(--dim)}
     var rc=document.getElementById('relatedChars');
     rc.innerHTML='';
     h.related.forEach(function(c){
-      var found=D.hanja.filter(function(x){return x.c===c;})[0];
+      var found=chars.byChar(c);
       if(found){
         var a=document.createElement('a');
         a.href='study.html?han='+encodeURIComponent(c);
@@ -261,13 +267,14 @@ a{color:var(--dim)}
 
   // Progress tracking
   var btn=document.getElementById('masterBtn');
-  var prog=JSON.parse(localStorage.getItem('hanjaprogress')||'{}');
-  if(prog[h.c]==='mastered'){btn.textContent='✓ Mastered';btn.style.color='var(--linestrong)';btn.style.borderColor='var(--linestrong)';}
+  function paintMasterBtn(mastered){
+    btn.textContent=mastered?'✓ Mastered':'Mark mastered';
+    btn.style.color=mastered?'var(--linestrong)':'var(--dim)';
+    btn.style.borderColor=mastered?'var(--linestrong)':'var(--line)';
+  }
+  paintMasterBtn(learn.isMastered(h.c));
   btn.addEventListener('click',function(){
-    var p=JSON.parse(localStorage.getItem('hanjaprogress')||'{}');
-    if(p[h.c]==='mastered'){delete p[h.c];btn.textContent='Mark mastered';btn.style.color='var(--dim)';btn.style.borderColor='var(--line)';}
-    else{p[h.c]='mastered';btn.textContent='✓ Mastered';btn.style.color='var(--linestrong)';btn.style.borderColor='var(--linestrong)';}
-    localStorage.setItem('hanjaprogress',JSON.stringify(p));
+    paintMasterBtn(learn.toggleMastered(h.c));
   });
 })();
 </script>

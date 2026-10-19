@@ -52,7 +52,8 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 @media(max-width:720px){.grid{grid-template-columns:1fr}.home-title{font-size:32px}}
 </style>
 <script src="hanja-data.js"></script>
-<script src="audio.js"></script>
+<script src="hanja-core.js"></script>
+<script src="hanja-adapters.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -82,11 +83,13 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 </div>
 <script>
 (function(){
-  var qs=new URLSearchParams(location.search);
-  var lv=parseInt(qs.get('l')); if(isNaN(lv)) lv=0;
-  var lessonIdx=parseInt(qs.get('lesson')); if(isNaN(lessonIdx)) lessonIdx=0;
-  var D=window.HANJA;
-  var meta=D.levels[lv];
+  var ports=HanjaAdapters.browser();
+  var core=HanjaCore.create({data:window.HANJA, store:ports.store, clock:ports.clock, speech:ports.speech});
+  var learn=core.learn, chars=core.chars, url=core.url;
+
+  var lv=url.int(location.search,'l',0);
+  var lessonIdx=url.int(location.search,'lesson',0);
+  var meta=chars.levels()[lv];
   var LEVELMETA=[['초급','Beginner','山'],['중급','Intermediate','心'],['고급','Advanced','德']];
   var lm=LEVELMETA[lv];
   function el(id){return document.getElementById(id)}
@@ -95,20 +98,19 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
 
   // pills
   var pills=el('pills');
-  D.levels.forEach(function(m,i){
+  chars.levels().forEach(function(m,i){
     var a=document.createElement('a');a.className='pill'+(i===lv?' on':'');
-    a.href='lesson.html?l='+lv+'&lesson='+lessonIdx;
+    a.href='lesson.html?l='+i+'&lesson='+lessonIdx;
     a.textContent=m.ko;pills.appendChild(a);
   });
 
   // Get lesson characters
-  var lvChars=D.hanja.filter(function(h){return h.lv===lv;});
-  var lessonChars=lvChars.filter(function(h){return (h.lesson||0)===lessonIdx;});
+  var lvChars=chars.list({lv:lv});
+  var lessonChars=chars.list({lv:lv, lesson:lessonIdx});
   var totalLessons=Math.max.apply(null,lvChars.map(function(h){return h.lesson||0;}))+1;
 
   // Progress
-  var progress=JSON.parse(localStorage.getItem('hanjaprogress')||'{}');
-  var mastered=lessonChars.filter(function(h){return progress[h.c]==='mastered';}).length;
+  var mastered=learn.masteredCount(lessonChars);
   var pct=Math.round(mastered/lessonChars.length*100);
   el('progressFill').style.width=pct+'%';
   el('progressText').textContent=mastered+' / '+lessonChars.length+' mastered in this lesson ('+pct+'%)';
@@ -117,7 +119,7 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
   // Render cards
   var grid=el('grid');
   lessonChars.forEach(function(h){
-    var isMastered=progress[h.c]==='mastered';
+    var isMastered=learn.isMastered(h.c);
     var ws=(h.words||[]).slice(0,2);
     var card=document.createElement('div');card.className='card';
     var wordsHtml=ws.map(function(w){return '<button class="spk small" type="button" data-speak="'+w.ko.replace(/"/g,'&quot;')+'">🔊</button> <b>'+w.ko+'</b> '+w.hj+' — '+w.gl;}).join('<br>');
@@ -136,18 +138,17 @@ nav a{color:var(--dim);text-decoration:none}nav a:hover{color:#fff}nav a.on{colo
     var spkBtn=e.target.closest('.spk');
     if(spkBtn){
       var t=spkBtn.getAttribute('data-speak');
-      if(window.speakKo&&t) window.speakKo(t);
+      if(t) ports.speech.speak(t);
       return;
     }
     var btn=e.target.closest('.btn[data-char]');
     if(!btn)return;
     var ch=btn.getAttribute('data-char');
-    var p=JSON.parse(localStorage.getItem('hanjaprogress')||'{}');
-    if(p[ch]==='mastered'){delete p[ch];btn.classList.remove('done');btn.textContent='Mark mastered';}
-    else{p[ch]='mastered';btn.classList.add('done');btn.textContent='✓ Mastered';}
-    localStorage.setItem('hanjaprogress',JSON.stringify(p));
+    var isDone=learn.toggleMastered(ch);
+    if(isDone){btn.classList.add('done');btn.textContent='✓ Mastered';}
+    else{btn.classList.remove('done');btn.textContent='Mark mastered';}
     // Update progress
-    var m=lessonChars.filter(function(h){return p[h.c]==='mastered';}).length;
+    var m=learn.masteredCount(lessonChars);
     el('progressFill').style.width=Math.round(m/lessonChars.length*100)+'%';
     el('progressText').textContent=m+' / '+lessonChars.length+' mastered in this lesson ('+Math.round(m/lessonChars.length*100)+'%)';
   });

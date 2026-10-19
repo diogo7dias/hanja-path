@@ -11,10 +11,11 @@ directly, so there is no copy step and nothing else may write it.
   surfaces that word. Breakdown lines ("사귈 교 + 바꿀 환") are built from the
   real 훈음 parsed from the dataset.
 
-Layout note: hand-written files are the 8 site pages, styles.css, audio.js,
-stroke.js. Everything this script reads from tools/ (wikitext.json, words.json,
-ko_english.json, radicals.json) is a frozen committed input. words.json is NOT
-reproducible here: build_words.py needs /tmp corpora and external CSVs.
+Layout note: hand-written files are the 8 site pages, styles.css, stroke.js and
+the study module (hanja-core.js, hanja-adapters.js, test/). Everything this
+script reads from tools/ (wikitext.json, words.json, ko_english.json,
+radicals.json) is a frozen committed input. words.json is NOT reproducible here:
+build_words.py needs /tmp corpora and external CSVs.
 """
 import argparse, json, re, sys, collections
 from pathlib import Path
