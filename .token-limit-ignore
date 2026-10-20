@@ -1,0 +1,3 @@
+# Data files and generated data (tools/build.py)
+tools/*.json
+hanja-data.js
